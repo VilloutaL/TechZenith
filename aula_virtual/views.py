@@ -1,11 +1,14 @@
 from django.shortcuts import render
-from .models import Usuario, RegistroAsignatura, Asignatura
+from django.utils import timezone
+from .models import Usuario, RegistroAsignatura, Asignatura, Token
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.models import Group
 from django.http import JsonResponse
+from django.core.mail import send_mail
 import json
 import secrets
 import string
+import uuid
 
 def generar_contrasena(longitud):
     caracteres = string.ascii_letters + string.digits + string.punctuation
@@ -54,6 +57,7 @@ def index(request):
     return render(request, "aula_virtual/index.html", {})
 
 def nuevo_usuario(request):
+    flag_crear_usuario = False
     if request.method == 'POST':
         username = request.POST.get('username-registro', '')
         email = request.POST.get('email-registro', '')
@@ -76,6 +80,7 @@ def nuevo_usuario(request):
             usuario_nuevo.is_superuser = is_superuser
         except Usuario.DoesNotExist:
             # Si el usuario no existe, créalo
+            flag_crear_usuario = True
             usuario_nuevo = Usuario.objects.create(
                 username=username,
                 email=email,
@@ -114,9 +119,52 @@ def nuevo_usuario(request):
             usuario_nuevo.groups.add(grupo_profesores)
             print("Usuario es profesor")
 
-        print(f'usuario: {username}, password {password}, email: {email}, Es profesor: {is_profesor}, Es Alumno: {is_alumno}, Es Apoderado: {is_apoderado}, Tutor: {tutor_id}')
+# -------------------------------------------------------------------
+    if flag_crear_usuario:
+        token_autenticacion = uuid.uuid4()
+        dead_time = timezone.now() + timezone.timedelta(days=7); # 7 Token valido por 7 dias
+        nuevo_token = Token.objects.create(
+            token_autenticacion = token_autenticacion,
+            dead_time = dead_time,
+            ID_usuario = usuario_nuevo,
+        )
+
+        nuevo_token.save();
+    
+        subject = 'Termina de configurar tu cuenta en Aula virutal TechZenith'
+        message = f'Por favor, haz clic en el siguiente enlace para terminar de configurar tu cuenta: http://127.0.0.1:8000/configuracion-cuenta/{nuevo_token.token_autenticacion}/'
+        from_email = 'saad11012002@gmail.com'
+        recipient_list = [usuario_nuevo.email]
+        send_mail(subject, message, from_email, recipient_list)
     
     return render(request, 'aula_virtual/new-user.html', {})
+
+def configuracion_cuenta(request, token):
+    try:
+        token_obj = Token.objects.get(token_autenticacion = token)
+        
+        # Verificar si el token ha expirado
+        if token_obj.is_expired():
+            return JsonResponse({"error": "El token ha expirado"})
+        
+        # Obtener el usuario asociado al token
+        usuario = token_obj.ID_usuario
+        
+        # Ejemplo de datos a devolver en formato JSON
+        data = {
+            "usuario": {
+                "username": usuario.username,
+                "email": usuario.email,
+                # Agrega otros campos según sea necesario
+            }
+        }
+        
+        # Retornar los datos del usuario en formato JSON
+        return JsonResponse(data)
+    
+    except Token.DoesNotExist:
+        return JsonResponse({"error": "Token no encontrado"})
+
 
 @login_required
 def mis_asignaturas(request):
