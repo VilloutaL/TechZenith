@@ -26,6 +26,29 @@ def obtener_usuarios(request):
     
     return JsonResponse(usuarios, safe=False)
 
+def obtener_usuario(request):
+    nombre_usuario = request.GET.get('username', '')
+    try:
+        usuario = Usuario.objects.get(username=nombre_usuario)
+        
+        # Verificar pertenencia a grupos
+        grupo_alumnos = Group.objects.get(name='Alumnos')
+        grupo_profesores = Group.objects.get(name='Profesores')
+        grupo_apoderados = Group.objects.get(name='Apoderados')
+        
+        usuario_data = {
+            'username': usuario.username,
+            'email': usuario.email,
+            'tutor': usuario.tutor.username if usuario.tutor else None,
+            'is_alumno': usuario.groups.filter(name='Alumnos').exists(),
+            'is_profesor': usuario.groups.filter(name='Profesores').exists(),
+            'is_apoderado': usuario.groups.filter(name='Apoderados').exists(),
+        }
+    except Usuario.DoesNotExist:
+        usuario_data = {'error': 'Usuario no encontrado'}
+    
+    return JsonResponse(usuario_data, safe=False)
+
 
 def index(request):
     return render(request, "aula_virtual/index.html", {})
@@ -43,18 +66,30 @@ def nuevo_usuario(request):
         is_apoderado = request.POST.get('isApoderado-registro', False) == 'on'
         tutor_id = request.POST.get('tutor-asociado', '')
 
-        # Crear el nuevo usuario
-        usuario_nuevo = Usuario.objects.create(
-            username=username,
-            email=email,
-            is_active=is_active,
-            is_staff=is_staff,
-            is_superuser=is_superuser
-        )
-        
-        # Asignar la contraseña
-        usuario_nuevo.set_password(password)
+        try:
+            # Intenta obtener el usuario existente
+            usuario_nuevo = Usuario.objects.get(username=username)
+            usuario_nuevo.email = email
+            usuario_nuevo.set_password(password)  # Actualiza la contraseña si es necesario
+            usuario_nuevo.is_active = is_active
+            usuario_nuevo.is_staff = is_staff
+            usuario_nuevo.is_superuser = is_superuser
+        except Usuario.DoesNotExist:
+            # Si el usuario no existe, créalo
+            usuario_nuevo = Usuario.objects.create(
+                username=username,
+                email=email,
+                is_active=is_active,
+                is_staff=is_staff,
+                is_superuser=is_superuser
+            )
+            usuario_nuevo.set_password(password)
+
+        # Guardar cambios en el usuario
         usuario_nuevo.save()
+
+        # Eliminar grupos anteriores
+        usuario_nuevo.groups.clear()
 
         # Asignar el usuario al grupo correspondiente y realizar acciones específicas
         if is_alumno:
@@ -82,9 +117,6 @@ def nuevo_usuario(request):
         print(f'usuario: {username}, password {password}, email: {email}, Es profesor: {is_profesor}, Es Alumno: {is_alumno}, Es Apoderado: {is_apoderado}, Tutor: {tutor_id}')
     
     return render(request, 'aula_virtual/new-user.html', {})
-
-def index(request):
-    return render(request, "aula_virtual/index.html", {})
 
 @login_required
 def mis_asignaturas(request):

@@ -1,9 +1,11 @@
 // Definir las URLs para las dos consultas
 const urlTodosUsuarios = '/obtener-usuarios/';
 const urlApoderados = '/obtener-usuarios/?rol=Apoderados';
+const urlUsuario = '/obtener_usuario/?username=';
 
 // Elementos claves del DOM
 const usernameRegistro = document.getElementById("in-username-registro");
+const emailRegistro = document.getElementById('in-email-registro');
 const nextBtn = document.getElementById("next-btn");
 const backBtn = document.getElementById('back-btn');
 const boxBtnRegistro = document.getElementById('box-btns-registro');
@@ -14,6 +16,7 @@ const checkIsProfesor = document.getElementById('check-is-profesor');
 const checkIsApoderado = document.getElementById('check-is-apoderado');
 const selectTutorAsociado = document.getElementById('select-tutor-asociado');
 const formNewUser = document.getElementById('form-new-user');
+const sendBtn = document.getElementById('send-btn');
 
 // Función para validar formulario antes de enviar
 function validarFormulario() {
@@ -24,6 +27,27 @@ function validarFormulario() {
         }
     }
     return true;
+}
+
+async function actualizarSelectTutorAsociado(tutorUsername) {
+    try {
+        const apoderados = await obtenerTodosLosApoderados();
+        console.log("Apoderados obtenidos:", apoderados);
+        
+        selectTutorAsociado.innerHTML = '<option value="None">Seleccione</option>'; // Limpiar opciones anteriores
+        apoderados.forEach(apoderado => {
+            const newOption = document.createElement('option');
+            newOption.value = apoderado.username;
+            newOption.innerText = apoderado.first_name ? `${apoderado.first_name} ${apoderado.last_name}` : apoderado.username;
+            selectTutorAsociado.appendChild(newOption);
+        });
+
+        // Establecer el valor del select
+        selectTutorAsociado.value = tutorUsername.toString(); // Asegurarse de convertir a cadena si es necesario
+        console.log("Valor del select actualizado:", selectTutorAsociado.value);
+    } catch (error) {
+        console.error('Error al actualizar select de tutor asociado:', error);
+    }
 }
 
 // Función para obtener todos los usuarios
@@ -49,6 +73,20 @@ const obtenerTodosLosApoderados = async () => {
         return await response.json();
     } catch (error) {
         console.error('Error en fetchApoderados:', error);
+    }
+};
+
+// Función para obtener todos los usuarios
+const obtenerUsuario = async (username) => {
+    try {
+        const urlCompleta = urlUsuario + username
+        const response = await fetch(urlCompleta);
+        if (!response.ok) {
+            throw new Error('Error al obtener el usuario');
+        }
+        return await response.json();
+    } catch (error) {
+        console.error('Error en fetchUsuario:', error);
     }
 };
 
@@ -89,12 +127,30 @@ nextBtn.addEventListener('click', async ()=>{
 
     const usuarioExistente = usuarios.find(usuario => usuario.username == rut)
     if (usuarioExistente) {
-        console.log("El usuario ya existe, Falta implementar la opcion de modificarlo.")          
+        console.log("El usuario ya existe, Falta implementar la opcion de modificarlo.")
+        const usuario = await obtenerUsuario(rut);
+        divStep2.classList = ""
+        boxBtnRegistro.classList = ""
+        nextBtn.classList = "disable"
+        usernameRegistro.readOnly = true;
+        emailRegistro.value = usuario.email;
+        checkIsApoderado.checked = usuario.is_apoderado;
+        checkIsProfesor.checked = usuario.is_profesor;
+        if(usuario.is_alumno){
+            checkIsAlumno.checked = true;
+            divStep3.classList = ""
+            await actualizarSelectTutorAsociado(usuario.tutor);
+        }
+        sendBtn.innerText = "Modificar usuario"
+
+
+        console.log(usuario)          
     } else {
         divStep2.classList = ""
         boxBtnRegistro.classList = ""
         nextBtn.classList = "disable"
         usernameRegistro.readOnly = true;
+        sendBtn.innerText = "Crear usuario"
     }
 })
 
@@ -117,8 +173,7 @@ checkIsAlumno.addEventListener('change', async () => {
         };
     } else {
         divStep3.classList = "disable"
-        nextBtnPt2.classList = ""
-        selectTutorAsociado.innerHTML = '<option value="Seleccione">Seleccione</option>'
+        selectTutorAsociado.innerHTML = '<option value="None">Seleccione</option>'
     }
 })
 
@@ -141,6 +196,7 @@ backBtn.addEventListener('click', () => {
     usernameRegistro.readOnly = false;
     nextBtn.classList = "";
     divStep2.classList = "disable";
+    divStep3.classList = "disable";
     boxBtnRegistro.classList = "disable"
 })
 
