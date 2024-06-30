@@ -145,26 +145,29 @@ def configuracion_cuenta(request, token):
         
         # Verificar si el token ha expirado
         if token_obj.is_expired():
-            return JsonResponse({"error": "El token ha expirado"})
+            return render(request, 'aula_virtual/configurar-cuenta.html', {
+                "expiro": True
+            })
         
-        # Obtener el usuario asociado al token
         usuario = token_obj.ID_usuario
+        data = {"ok": True}
         
-        # Ejemplo de datos a devolver en formato JSON
-        data = {
-            "usuario": {
-                "username": usuario.username,
-                "email": usuario.email,
-                # Agrega otros campos según sea necesario
-            }
-        }
-        
-        # Retornar los datos del usuario en formato JSON
-        return JsonResponse(data)
-    
     except Token.DoesNotExist:
-        return JsonResponse({"error": "Token no encontrado"})
+        return render(request, 'aula_virtual/configurar-cuenta.html', {
+            "no_existe": True
+        })
 
+    if request.method == 'POST':
+        usuario.first_name = request.POST.get('first-name', '')
+        usuario.last_name = request.POST.get('last-name', '')
+        usuario.set_password(request.POST.get('password', ''))
+        usuario.is_active = True
+        usuario.save()
+        token_obj.delete()
+        data['ok'] = False
+        data['exito'] = True
+
+    return render(request, 'aula_virtual/configurar-cuenta.html', data)
 
 @login_required
 def mis_asignaturas(request):

@@ -42,6 +42,11 @@ body{
     height: 100%;
     object-fit: contain;
 }
+/* Pagina configuracion de una cuenta */ 
+
+#pg-conf-cuenta{
+    width: 90vw;
+}
 
 /* Pagina nuevo usuario */
 
