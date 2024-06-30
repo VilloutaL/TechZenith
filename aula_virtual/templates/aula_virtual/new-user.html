@@ -11,9 +11,9 @@
         <form method="post" id="form-new-user">
             {% csrf_token %}
             <div id="step-1">
-                <label for="username-registro">Rut:</label>
+                <label for="username-registro" >Rut:</label>
                 <input type="text" name="username-registro" id="in-username-registro" {% if username_registro %} value="{{ username_registro }}" {% endif %}>
-                <button type="button" id="next-btn-pt1">Siguiente</button>
+                <button type="button" id="next-btn">Siguiente</button>
             </div>
             
             <div id="step-2" class="disable">
@@ -36,15 +36,19 @@
                         <label for="isApoderado-registro">Apoderado</label>
                     </div>
                 </div>
-                <button type="submit" id="next-btn-pt2">Crear nuevo usuario</button>
+                
             </div>
             
             <div id="step-3" class="disable">
                 <select name="tutor-asociado" id="select-tutor-asociado">
-                    <option value="Seleccione">Seleccione el tutor</option>
+                    <option value="None">Seleccione el tutor</option>
                 </select>
+            </div>
+            <div id="box-btns-registro" class="disable">
+                <button type="button" id="back-btn">Volver</button>
                 <button type="submit">Crear nuevo usuario</button>
             </div>
+            
         </form>
     </div>
 </main>

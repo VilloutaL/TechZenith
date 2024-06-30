@@ -4,14 +4,27 @@ const urlApoderados = '/obtener-usuarios/?rol=Apoderados';
 
 // Elementos claves del DOM
 const usernameRegistro = document.getElementById("in-username-registro");
-const nextBtnPt1 = document.getElementById("next-btn-pt1");
-const nextBtnPt2 = document.getElementById("next-btn-pt2");
+const nextBtn = document.getElementById("next-btn");
+const backBtn = document.getElementById('back-btn');
+const boxBtnRegistro = document.getElementById('box-btns-registro');
 const divStep2 = document.getElementById("step-2");
 const divStep3 = document.getElementById('step-3');
 const checkIsAlumno = document.getElementById('check-is-alumno');
 const checkIsProfesor = document.getElementById('check-is-profesor');
 const checkIsApoderado = document.getElementById('check-is-apoderado');
 const selectTutorAsociado = document.getElementById('select-tutor-asociado');
+const formNewUser = document.getElementById('form-new-user');
+
+// Función para validar formulario antes de enviar
+function validarFormulario() {
+    if (checkIsAlumno.checked) {
+        if (selectTutorAsociado.value === 'None') {
+            alert('Por favor, seleccione un tutor asociado.');
+            return false;
+        }
+    }
+    return true;
+}
 
 // Función para obtener todos los usuarios
 const obtenerTodosLosUsuarios = async () => {
@@ -64,7 +77,7 @@ const validarRut = (rut) => {
 };
 
 // Función Listener btn step 1
-nextBtnPt1.addEventListener('click', async ()=>{
+nextBtn.addEventListener('click', async ()=>{
     const usuarios = await obtenerTodosLosUsuarios()
     const rut = usernameRegistro.value;
     
@@ -79,7 +92,9 @@ nextBtnPt1.addEventListener('click', async ()=>{
         console.log("El usuario ya existe, Falta implementar la opcion de modificarlo.")          
     } else {
         divStep2.classList = ""
-        nextBtnPt1.classList = "disable"
+        boxBtnRegistro.classList = ""
+        nextBtn.classList = "disable"
+        usernameRegistro.readOnly = true;
     }
 })
 
@@ -87,19 +102,19 @@ nextBtnPt1.addEventListener('click', async ()=>{
 checkIsAlumno.addEventListener('change', async () => {
     if(checkIsAlumno.checked){
         if(checkIsApoderado.checked || checkIsProfesor.checked){
-            alert("Un alumno no puede ser Profesor o Apoderado, porfavor verifique los datos.") 
-        }
-
-        divStep3.classList = ""
-        nextBtnPt2.classList = "disable"
-        const apoderados = await obtenerTodosLosApoderados();
-        console.log(apoderados)
-        apoderados.forEach(apoderado => {
-            const newOption = document.createElement('option');
-            newOption.value = apoderado.username;
-            newOption.innerText = apoderado.first_name ? `${apoderado.first_name} ${apoderado.last_name}` : apoderado.username;
-            selectTutorAsociado.appendChild(newOption);
-        });
+            alert("Un alumno no puede ser Profesor o Apoderado, porfavor verifique los datos.")
+            checkIsAlumno.checked = false; 
+        } else {
+            divStep3.classList = ""
+            const apoderados = await obtenerTodosLosApoderados();
+            console.log(apoderados)
+            apoderados.forEach(apoderado => {
+                const newOption = document.createElement('option');
+                newOption.value = apoderado.username;
+                newOption.innerText = apoderado.first_name ? `${apoderado.first_name} ${apoderado.last_name}` : apoderado.username;
+                selectTutorAsociado.appendChild(newOption);
+            });
+        };
     } else {
         divStep3.classList = "disable"
         nextBtnPt2.classList = ""
@@ -107,4 +122,31 @@ checkIsAlumno.addEventListener('change', async () => {
     }
 })
 
+checkIsApoderado.addEventListener('change', () => {
+    if(checkIsApoderado.checked && checkIsAlumno.checked){
+        alert("Un alumno no puede ser Profesor o Apoderado, porfavor verifique los datos.")
+        checkIsApoderado.checked = false;
+    }
+})
 
+checkIsProfesor.addEventListener('change', () => {
+    if(checkIsProfesor.checked && checkIsAlumno.checked){
+        alert("Un alumno no puede ser Profesor o Apoderado, porfavor verifique los datos.")
+        checkIsProfesor.checked = false;
+    }
+})
+
+backBtn.addEventListener('click', () => {
+    usernameRegistro.value = "";
+    usernameRegistro.readOnly = false;
+    nextBtn.classList = "";
+    divStep2.classList = "disable";
+    boxBtnRegistro.classList = "disable"
+})
+
+// Listener para el envío del formulario
+formNewUser.addEventListener('submit', function(event) {
+    if (!validarFormulario()) {
+        event.preventDefault();
+    }
+});

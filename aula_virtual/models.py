@@ -74,9 +74,6 @@ class Material(models.Model):
     descripcion = models.TextField()
     archivo = models.FileField()
     fecha_publicacion = models.DateField()
-    
-    def __str__(self):
-        return self.titulo
 
 class Evaluacion(models.Model):
     asignatura = models.ForeignKey(Asignatura, on_delete=models.CASCADE)
