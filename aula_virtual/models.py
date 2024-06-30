@@ -53,7 +53,7 @@ class AsistenciaJustificacion(models.Model):
     ID_justificacion = models.ForeignKey(Justificacion, on_delete=models.CASCADE)
 
 
-class Asignatura(models.model):
+class Asignatura(models.Model):
     nombre = models.CharField(max_length=50)
     def __str__(self):
         return self.nombre
@@ -67,15 +67,18 @@ class RegistroAsignatura(models.Model):
     usuario = models.ForeignKey(Usuario, on_delete=models.CASCADE)
     rol = models.CharField(max_length= 10 , choices=ROLES)
     
-class Material(models.model):
+class Material(models.Model):
     asignatura = models.ForeignKey(Asignatura, on_delete= models.CASCADE)
     profesor = models.ForeignKey(Usuario, on_delete=models.CASCADE)
     titulo = models.CharField(max_length=255)
     descripcion = models.TextField()
     archivo = models.FileField()
     fecha_publicacion = models.DateField()
+    
+    def __str__(self):
+        return self.titulo
 
-class Evaluacion(models.model):
+class Evaluacion(models.Model):
     asignatura = models.ForeignKey(Asignatura, on_delete=models.CASCADE)
     titulo = models.CharField(max_length=255)
     descripcion = models.TextField()
@@ -84,13 +87,13 @@ class Evaluacion(models.model):
     tipo = models.CharField(max_length=50)
 
 
-class Calificacion(models.model):
+class Calificacion(models.Model):
     ID_usuario = models.ForeignKey(Usuario, on_delete= models.CASCADE)
     ID_evaluacion = models.ForeignKey(Evaluacion, on_delete= models.CASCADE)
     comentario = models.TextField()
     calificacion = models.FloatField()
 
-class AsignaturaEvaluacion(models.model):
+class AsignaturaEvaluacion(models.Model):
     ID_evaluacion = models.ForeignKey(Evaluacion, on_delete=models.CASCADE)
     ID_asignatura = models.ForeignKey(Asignatura, on_delete=models.CASCADE)   
 
