@@ -1,9 +1,11 @@
-from django.shortcuts import render
+from django.shortcuts import render, redirect
 from django.utils import timezone
 from .models import Usuario, RegistroAsignatura, Asignatura, Token
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.models import Group
+from django.contrib.auth import authenticate, login
 from django.http import JsonResponse
+from django.contrib import messages
 from django.core.mail import send_mail
 import json
 import secrets
@@ -54,9 +56,36 @@ def obtener_usuario(request):
 
 
 def index(request):
-    return render(request, "aula_virtual/index.html", {})
+    #if request.user.is_authenticated:
+    #    return redirect('home')
+     
+    data = {}
+    data["titulo_de_pagina"] = "Inicio - Aula virtual"
+    
+    if request.method == 'POST':
+        username = request.POST['username']
+        password = request.POST['password']
+        recordarme = request.POST.get('recordarme') == 'on'
 
+        user = authenticate(request, username=username, password=password)
+
+        if user is not None:
+            login(request, user)
+            if not recordarme:
+                request.session.set_expiry(0)
+            else:
+                request.session.set_expiry(None)  # Usa la duración predeterminada de la sesión
+            messages.success(request, "Usuario autenticado")
+        else:
+            messages.error(request, "Nombre de usuario o contraseña incorrecta.")
+
+    return render(request, "aula_virtual/index.html", data)
+
+@login_required
 def nuevo_usuario(request):
+    usuario_autenticado = request.user
+    if usuario_autenticado.is_superuser == False:
+        return render(request, 'aula_virtual/usuario-sin-permiso.html', {})
     flag_crear_usuario = False
     if request.method == 'POST':
         username = request.POST.get('username-registro', '')
