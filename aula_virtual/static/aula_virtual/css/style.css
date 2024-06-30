@@ -1,3 +1,94 @@
 *{
-    background-color: black;
+    padding: 0;
+    margin: 0;
+}
+
+body{
+    min-height: 100vh;
+    width: 100vw;
+    display: flex;
+    flex-flow: row nowrap;
+}
+
+.bg-darkblue{
+    background-color: #021430;
+}
+
+.bg-lightblue{
+    background-color: #D8E6FE;
+}
+
+.disable{
+    display: none;
+}
+
+#pg-index{
+    display: flex;
+    flex-flow: row nowrap;
+    overflow: hidden;
+}
+
+#pg-index span{
+    width: 50%;
+    height: 100vh;
+    display: flex;
+    flex-flow: column nowrap;
+    justify-content: center;
+    align-items: center;
+}
+
+#pg-index span img{
+    width: 80%;
+    height: 100%;
+    object-fit: contain;
+}
+
+/* Pagina nuevo usuario */
+
+#pg-new-user{
+    width: 90vw;
+    padding: 20px;
+    display: flex;
+    flex-flow: column nowrap;
+    justify-content: start;
+    align-content: center;
+}
+
+#pg-new-user h1{
+    margin-bottom: 20px;
+}
+
+#form-new-user{
+    display: flex;
+    flex-flow: column nowrap;
+    justify-content: start;
+    align-content: center;
+}
+
+#form-new-user #step-1{
+    margin-bottom: 20px;
+}
+
+#form-new-user #step-2{
+    margin-bottom: 20px;
+}
+
+#form-new-user #step-2 div{
+    margin-bottom: 20px;
+
+}
+
+/* Menu lateral */
+
+#menu-lateral{
+    height: auto;
+    width: 10vw;
+    display: flex;
+    flex-flow: column nowrap;
+    justify-content: start;
+    align-items: center;
+}
+
+#menu-lateral img{
+    width: 90%;
 }

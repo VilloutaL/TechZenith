@@ -1,0 +1,52 @@
+{% extends "aula_virtual/base.html" %}
+{% load static %}
+
+{% block content %}
+<aside id="menu-lateral" class="bg-darkblue">
+    <img src="{% static 'aula_virtual/media/Logo-Techzenith.png' %}" alt="Logo de TechZenith">
+</aside>
+<main id="pg-new-user" class="bg-lightblue">
+    <h1>Gestor de usuarios</h1>
+    <div>
+        <form method="post" id="form-new-user">
+            {% csrf_token %}
+            <div id="step-1">
+                <label for="username-registro">Rut:</label>
+                <input type="text" name="username-registro" id="in-username-registro" {% if username_registro %} value="{{ username_registro }}" {% endif %}>
+                <button type="button" id="next-btn-pt1">Siguiente</button>
+            </div>
+            
+            <div id="step-2" class="disable">
+                <div>
+                    <label for="email-registro">Correo: </label>
+                    <input type="email" name="email-registro" id="in-email-registro">
+                </div>
+                <div id="box-check-group">
+                    <h5>Tipo de usuario</h5>
+                    <div>
+                        <input type="checkbox" name="isProfesor-registro" id="check-is-profesor">
+                        <label for="isProfesor-registro">Profesor</label>
+                    </div>
+                    <div>
+                        <input type="checkbox" name="isAlumno-registro" id="check-is-alumno">
+                        <label for="isAlumno-registro">Alumno</label> 
+                    </div>
+                    <div>
+                        <input type="checkbox" name="isApoderado-registro" id="check-is-apoderado">
+                        <label for="isApoderado-registro">Apoderado</label>
+                    </div>
+                </div>
+                <button type="submit" id="next-btn-pt2">Crear nuevo usuario</button>
+            </div>
+            
+            <div id="step-3" class="disable">
+                <select name="tutor-asociado" id="select-tutor-asociado">
+                    <option value="Seleccione">Seleccione el tutor</option>
+                </select>
+                <button type="submit">Crear nuevo usuario</button>
+            </div>
+        </form>
+    </div>
+</main>
+<script src="{% static 'aula_virtual/js/main-nuevo-usuario.js' %}"></script>
+{% endblock %}

@@ -1,14 +1,28 @@
+{% extends "aula_virtual/base.html" %}
 {% load static %}
 
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Document</title>
-    <link rel="stylesheet" href="{% static 'aula_virtual/css/style.css' %}">
-</head>
-<body>
-    <h1>Hola mundo</h1>
-</body>
-</html>
+{% block content %}
+<main id="pg-index">
+    <span class="bg-darkblue">
+        <img src="{% static 'aula_virtual/media/Logo-Techzenith.png' %}" alt="">
+    </span>
+    <span>
+        <h1>Ingresa</h1>
+        <form action="" id="form-autentication">
+            <div>
+                <label for="username">Nombre de usuario: </label>
+                <input type="text" name="username" id="in-username">
+            </div>
+            <div>
+                <label for="password">Contraseña</label>
+                <input type="password" name="password" id="in-password">
+            </div>
+            <div>
+                <label for="remindme">Recordarme</label>
+                <input type="checkbox" name="remind-me" id="in-remind-me">
+            </div>
+            <input type="submit" value="Ingresar">
+        </form>
+    </span>
+</main>
+{% endblock %}
