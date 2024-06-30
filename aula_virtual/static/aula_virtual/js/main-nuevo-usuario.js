@@ -198,6 +198,10 @@ backBtn.addEventListener('click', () => {
     divStep2.classList = "disable";
     divStep3.classList = "disable";
     boxBtnRegistro.classList = "disable"
+    emailRegistro.value = ""
+    checkIsAlumno.checked = false
+    checkIsApoderado.checked = false
+    checkIsProfesor.checked = false
 })
 
 // Listener para el envío del formulario
