@@ -1,0 +1,34 @@
+{% load static %}
+
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Mi Plataforma Educativa{% endblock %}</title>
+    <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="{% static 'aula_virtual/css/style.css' %}">
+</head>
+<body>
+    <div class="d-flex">
+        <!-- Menú lateral -->
+        <div class="bg-light border-right" id="sidebar-wrapper">
+            <div class="sidebar-heading">
+                <img src="{% static 'aula_virtual/media/Logo-Techzenith.png' %}" alt="Logo Logo-Techzenith" class="sidebar-logo">
+            </div>
+            <div class="list-group list-group-flush">
+                <a href="{% url 'mis_asignaturas' %}" class="list-group-item list-group-item-action bg-light">Mis Asignaturas</a>
+                <a href="" class="list-group-item list-group-item-action bg-light">Mis Calificaciones</a>
+                <a href="" class="list-group-item list-group-item-action bg-light">Asistencia</a>
+            </div>
+        </div>
+                {% block content %}
+                {% endblock %}
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz" crossorigin="anonymous">
+    </script>
+</body>
+</html>

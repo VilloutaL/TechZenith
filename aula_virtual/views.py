@@ -71,7 +71,7 @@ def material_asignatura(request, id):
 def subir_material(request, asignatura_id):
     asignatura = get_object_or_404(Asignatura, id=asignatura_id)
 
-    es_profesor = RegistroAsignatura.objects.filter(ID_asignatura=asignatura, ID_usuario=request.user, rol='PROFESOR').exists()
+    es_profesor = RegistroAsignatura.objects.filter(asignatura_id=asignatura, usuario=request.user, rol='PROFESOR').exists()
     if not es_profesor:
         raise PermissionDenied 
     
@@ -98,7 +98,7 @@ def subir_material(request, asignatura_id):
 def editar_material(request, id):
     material = get_object_or_404(Material, id=id)
 
-    es_profesor = RegistroAsignatura.objects.filter(ID_asignatura=material.ID_asignatura, ID_usuario=request.user, rol='PROFESOR').exists()
+    es_profesor = RegistroAsignatura.objects.filter(asignatura_id=material.asignatura_id, usuario=request.user, rol='PROFESOR').exists()
     if not es_profesor:
         raise PermissionDenied
 
@@ -108,7 +108,7 @@ def editar_material(request, id):
         if 'archivo' in request.FILES:
             material.archivo = request.FILES['archivo']
         material.save()
-        return redirect('material_asignatura', id=material.ID_asignatura.id)
+        return redirect('material_asignatura', id=material.asignatura.id)
 
     return render(request, 'aula_virtual/editar_material.html', {'material': material})
 
@@ -116,7 +116,7 @@ def editar_material(request, id):
 def borrar_material(request, id):
     material = get_object_or_404(Material, id=id)
 
-    es_profesor = RegistroAsignatura.objects.filter(ID_asignatura=material.ID_asignatura, ID_usuario=request.user, rol='PROFESOR').exists()
+    es_profesor = RegistroAsignatura.objects.filter(asignatura_id=material.asignatura_id, usuario=request.user, rol='PROFESOR').exists()
     if not es_profesor:
         raise PermissionDenied
 
