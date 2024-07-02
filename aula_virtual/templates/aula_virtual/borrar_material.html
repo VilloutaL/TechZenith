@@ -1,0 +1,15 @@
+
+{% extends 'aula_virtual/base.html' %}
+
+{% block content %}
+  <div class="container mt-4">
+    <h1>¿Estás seguro que deseas borrar este material?</h1>
+    <p>Título: {{ material.titulo }}</p>
+    <p>Descripción: {{ material.descripcion }}</p>
+    <form method="post">
+      {% csrf_token %}
+      <button type="submit" class="btn btn-danger">Borrar</button>
+      <a href="{% url 'material_asignatura' material.id %}" class="btn btn-secondary">Cancelar</a>
+    </form>
+  </div>
+{% endblock %}

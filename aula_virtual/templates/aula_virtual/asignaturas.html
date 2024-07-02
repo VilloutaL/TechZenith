@@ -1,11 +1,26 @@
 {% extends 'aula_virtual/base.html' %}
 
 {% block content %}
-<h1>Mis Asignaturas</h1>
-<ul>
-    {% for asignatura in asignaturas %}
-    <li>{{ asignatura.nombre }}</li>
-    {% endfor %}
-</ul>
+<aside id="menu-lateral">
+    <h1>Mis Asignaturas</h1>
+</aside>
 
+  <div class="container mt-4">
+    <div class="row">
+      {% for asignatura in asignaturas %}
+        <div class="col-md-4 mb-4">
+          <div class="card">
+            {% if asignatura.imagen %}
+            <img src="{{ asignatura.imagen.url }}" class="card-img-top" alt="{{ asignatura.nombre }}">
+            {% endif %}
+            <div class="card-body">
+              <h5 class="card-title">{{ asignatura.nombre }}</h5>
+              <p class="card-text">Descripción breve de la asignatura.</p>
+              <a href="{% url 'material_asignatura' asignatura.id %}" class="btn btn-primary">Ver Asignatura</a>
+            </div>
+          </div>
+        </div>
+      {% endfor %}
+    </div>
+  </div>
 {% endblock %}

@@ -1,0 +1,29 @@
+{% extends 'aula_virtual/base.html' %}
+
+{% block content %}
+  <div class="container mt-4">
+    <h1>{{ asignatura.nombre }}</h1>
+    {% if es_profesor %}
+      <a href="{% url 'subir_material' asignatura.id %}" class="btn btn-success mb-3">Subir Material</a>
+    {% endif %}
+    <h2>Material de la Asignatura</h2>
+    <div class="row">
+      {% for material in materiales %}
+        <div class="col-md-4 mb-4">
+          <div class="card">
+            <div class="card-body">
+              <h5 class="card-title">{{ material.titulo }}</h5>
+              <p class="card-text">{{ material.descripcion }}</p>
+              <a href="{{ material.archivo.url }}" class="btn btn-primary" download>Descargar Material</a>
+            
+              {% if es_profesor %}
+                <a href="{% url 'editar_material' material.id %}" class="btn btn-warning">Editar</a>
+                <a href="{% url 'borrar_material' material.id %}" class="btn btn-danger">Borrar</a>
+              {% endif %}
+            </div>
+          </div>
+        </div>
+      {% endfor %}
+    </div>
+  </div>
+{% endblock %}
