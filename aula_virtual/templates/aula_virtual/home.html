@@ -1,0 +1,66 @@
+{% extends "aula_virtual/utilidades/base.html" %}
+{% load static %}
+
+{% block content %}
+{% include 'aula_virtual/utilidades/menu-lateral.html' %}
+<main id="pg-home">
+    {% if es_administrador %}
+    <p>Usuario administrador</p>
+    {% endif %}
+    {% if es_profesor %}
+    <p>Usuario profesor</p>
+    {% endif %}
+    {% if es_alumno %}
+    <p>Usuario alumno</p>
+    {% endif %}
+    {% if es_apoderado %}
+    <h1>Bienvenido/a {{usuario.first_name}} {{usuario.last_name}}</h1>
+    <div class="accordion accordion-flush" id="accordionExample">
+        {% for alumno in mis_alumnos %}
+        <div class="accordion-item">
+            <h2 class="accordion-header">
+                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse"
+                    data-bs-target="#collaps{{ forloop.counter }}" aria-expanded="false" aria-controls="collaps{{ forloop.counter }}">
+                    {{ alumno.nombre }}
+                </button>
+            </h2>
+            <div id="collaps{{ forloop.counter }}" class="accordion-collapse collapse" data-bs-parent="#accordionExample">
+                <div class="accordion-body">
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <th scope="col">Presentes</th>
+                                <th scope="col">Ausentes</th>
+                                <th scope="col">Retrasado</th>
+                                <th scope="col">Sin registrar</th>
+                                <th scope="col">Total</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <th scope="row">{{alumno.total_presente}}</th>
+                                <td>{{ alumno.total_ausente }} {% if alumno.ausencia_no_justificada != 0 %} ({{ alumno.ausencia_no_justificada }} sin justificar) {% endif %}</td>
+                                <td>{{alumno.total_retraso}} {% if alumno.retraso_no_justificado != 0 %} ({{ alumno.retraso_no_justificado }}) sin justificar {% endif %}</td>
+                                <td>{{alumno.total_sin_registrar}}</td>
+                                <td>{{alumno.total_asistencias}}</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                    <div class="d-grid gap-2">
+                        {% if alumno.retraso_no_justificado != 0 %}
+                        <a href="/justificar/{{alumno.username}}" class="btn btn-warning">Justificar retraso pendiente </a>
+                        {% endif %}
+                        {% if alumno.ausencia_no_justificada != 0 %}
+                        <a href="/justificar/{{alumno.username}}" class="btn btn-danger">Justificar ausencia pendiente </a>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+
+
+</main>
+{% endblock %}

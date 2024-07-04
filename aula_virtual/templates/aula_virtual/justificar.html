@@ -1,0 +1,54 @@
+{% extends "aula_virtual/utilidades/base.html" %}
+{% load static %}
+
+{% block content %}
+{% include 'aula_virtual/utilidades/menu-lateral.html' %}
+<main id="pg-justificar">
+    <h1>Justificar a {{alumno.first_name}} {{alumno.last_name}}</h1>
+    <form method="post" enctype="multipart/form-data">
+        {% csrf_token %}
+        <table class="table">
+            <thead>
+                <tr>
+                    <th scope="col">Seleccione</th>
+                    <th scope="col">Fecha</th>
+                    <th scope="col">Jornada</th>
+                    <th scope="col">Estado</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for ausencia in ausencias_no_justificadas %}
+                <tr>
+                    <td>
+                        <input type="checkbox" name="asistencia_ids" value="{{ ausencia.id }}">
+                    </td>
+                    <td>{{ ausencia.dia }}</td>
+                    <td>{{ ausencia.jornada }}</td>
+                    <td>{{ ausencia.get_estado_display }}</td>
+                </tr>
+                {% endfor %}
+                {% for retraso in retrasos_no_justificados %}
+                <tr>
+                    <td>
+                        <input type="checkbox" name="asistencia_ids" value="{{ retraso.id }}">
+                    </td>
+                    <td>{{ retraso.dia }}</td>
+                    <td>{{ retraso.jornada }}</td>
+                    <td>{{ retraso.get_estado_display }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        <div class="mb-3">
+            <label for="mensaje" class="form-label">Mensaje:</label>
+            <textarea id="mensaje" name="mensaje" class="form-control" rows="3"></textarea><br>
+        </div>
+        <div class="mb-3">
+            <label for="certificado" class="form-label">Certificado:</label>
+            <input type="file" id="certificado" name="certificado" class="form-control"><br>
+        </div>
+
+        <button type="submit" class="btn btn-secondary">Justificar seleccionados</button>
+    </form>
+</main>
+{% endblock %}
