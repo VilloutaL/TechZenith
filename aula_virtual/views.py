@@ -2,7 +2,7 @@ from django.shortcuts import render, get_object_or_404, redirect
 from .models import Usuario, RegistroAsignatura, Asignatura, Material
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.models import Group
-from django.http import JsonResponse
+from django.http import JsonResponse,FileResponse, Http404
 from django.core.files.storage import FileSystemStorage
 import json
 from django.core.exceptions import PermissionDenied
@@ -125,3 +125,12 @@ def borrar_material(request, id):
         return redirect('material_asignatura', id=material.asignatura.id)
     return render(request, 'aula_virtual/borrar_material.html', {'material': material})
 
+@login_required
+def descargar_material(request, id):
+    material = get_object_or_404(Material, id=id)
+    
+    # Verifica que el usuario esté registrado en la asignatura
+    if not RegistroAsignatura.objects.filter(usuario=request.user, asignatura_id=material.asignatura).exists():
+        raise Http404("No está autorizado para acceder a este material")
+    
+    return FileResponse(material.archivo, as_attachment=True, filename=material.archivo.name)

@@ -14,7 +14,8 @@
             <div class="card-body">
               <h5 class="card-title">{{ material.titulo }}</h5>
               <p class="card-text">{{ material.descripcion }}</p>
-              <a href="{{ material.archivo.url }}" class="btn btn-primary" download>Descargar Material</a>
+              <a href="{% url 'descargar_material' material.id %}" class="btn btn-primary">Descargar</a>
+
             
               {% if es_profesor %}
                 <a href="{% url 'editar_material' material.id %}" class="btn btn-warning">Editar</a>

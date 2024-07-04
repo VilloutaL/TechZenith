@@ -73,7 +73,7 @@ class Material(models.Model):
     profesor = models.ForeignKey(Usuario, on_delete=models.CASCADE)
     titulo = models.CharField(max_length=255)
     descripcion = models.TextField()
-    archivo = models.FileField(upload_to ='uploads/', null=True, blank=True)
+    archivo = models.FileField(upload_to ='aula_virtual/uploads/', null=True, blank=True)
     fecha_publicacion = models.DateField(auto_now_add=True, blank=True)
     
     def __str__(self):
