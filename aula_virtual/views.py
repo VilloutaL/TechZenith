@@ -18,6 +18,7 @@ import secrets
 from django.contrib.auth.decorators import login_required
 import string
 import uuid
+from .utils import enviar_notificacion_a_alumnos
 
 def cargar_notificaciones(request):
     usuario = request.user
@@ -37,6 +38,7 @@ def crear_anuncio(request):
             # Asigna la instancia del usuario como profesor_id del anuncio
             form.profesor_id = usuario_actual
             form.save()
+            enviar_notificacion_a_alumnos(form)
             # Redirige a una URL específica después de crear el anuncio
             return redirect('lista_anuncios_usuario')  # Define esta URL según tu necesidad
     else:
@@ -213,13 +215,23 @@ def home(request):
             data['mis_alumnos'].append(new_alumno)
     # Usuario es Alumno
     if usuario.groups.filter(name="Alumnos").exists():
+    #if usuario.is_superuser:
         data["es_alumno"] = True
+        # Obtener todas las asignaturas en las que el alumno está inscrito
+        asignaturas_usuario = RegistroAsignatura.objects.filter(usuario=usuario).values_list('asignatura', flat=True)
 
+        # Obtener los objetos de asignatura a partir de las IDs obtenidas
+        asignaturas = Asignatura.objects.filter(id__in=asignaturas_usuario)
+
+        # Obtener los anuncios que corresponden a estas asignaturas
+        anuncios = Anuncio.objects.filter(asignatura__in=asignaturas)
+
+        data['asignaturas'] = asignaturas
+        data['anuncios'] = anuncios
     # Usuario es profesor
     if usuario.groups.filter(name="Profesores").exists():
         data["es_profesor"] = True
         
-    
     return render(request, 'aula_virtual/home.html', data)
 
 @login_required
