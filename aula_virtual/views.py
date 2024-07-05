@@ -1,4 +1,4 @@
-from django.shortcuts import render, redirect
+from django.shortcuts import render, redirect, get_object_or_404
 from django.utils import timezone
 from .models import Usuario, RegistroAsignatura, Asignatura, Token, Asistencia, AsistenciaJustificacion
 from django.contrib.auth.decorators import login_required
@@ -7,12 +7,74 @@ from django.contrib.auth import authenticate, login, logout
 from django.http import JsonResponse, HttpResponseBadRequest
 from django.contrib import messages
 from django.core.mail import send_mail
+from .forms import AnuncioForm
+from .models import Anuncio
+from .models import Notificacion
+import json
 from datetime import datetime
 from django.urls import reverse
 from urllib.parse import urlencode
 import secrets
+from django.contrib.auth.decorators import login_required
 import string
 import uuid
+
+def cargar_notificaciones(request):
+    usuario = request.user
+    notificaciones = Notificacion.objects.filter(usuario=usuario)
+    data = list(notificaciones.values('id', 'mensaje', 'fecha_creacion'))
+    return JsonResponse(data, safe=False)
+
+@login_required
+def crear_anuncio(request):
+    if request.method == 'POST':
+        form = AnuncioForm(request.POST)
+        if form.is_valid():
+            form = form.save(commit=False)
+            # Obtiene la instancia del usuario actual autenticado
+            usuario_actual = request.user
+            
+            # Asigna la instancia del usuario como profesor_id del anuncio
+            form.profesor_id = usuario_actual
+            form.save()
+            # Redirige a una URL específica después de crear el anuncio
+            return redirect('lista_anuncios_usuario')  # Define esta URL según tu necesidad
+    else:
+        form = AnuncioForm()
+
+    return render(request, 'aula_virtual/crear_anuncio.html', {'form': form})
+
+def editar_anuncio(request, pk):
+    anuncio = get_object_or_404(Anuncio, pk=pk)
+    if request.method == 'POST':
+        form = AnuncioForm(request.POST, instance=anuncio)
+        if form.is_valid():
+            form.save()
+            return redirect('lista_anuncios_usuario')
+    else:
+        form = AnuncioForm(instance=anuncio)
+    
+    return render(request, 'aula_virtual/editar_anuncio.html', {'form': form})
+
+def eliminar_anuncio(request, pk):
+    anuncio = get_object_or_404(Anuncio, pk=pk)
+    if request.method == 'POST':
+        anuncio.delete()
+        return redirect('lista_anuncios_usuario')
+    
+    return render(request, 'aula_virtual/confirmar_eliminar_anuncio.html', {'anuncio': anuncio})
+
+def lista_anuncios_usuario(request):
+    # Obtén todos los anuncios creados por el usuario actual
+    anuncios = Anuncio.objects.filter(profesor_id=request.user)
+    
+    # Puedes ordenar los anuncios por fecha de publicación si lo deseas
+    anuncios = anuncios.order_by('-fecha_publicacion')
+    
+    return render(request, 'aula_virtual/lista_anuncios.html', {'anuncios': anuncios})
+
+def anuncio_creado_exitosamente(request):
+    return render(request, 'aula_virtual/anuncio_creado_exitosamente.html')
 
 # Funciones de uso general
 def generar_contrasena(longitud):
