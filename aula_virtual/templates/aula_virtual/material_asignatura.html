@@ -1,6 +1,8 @@
-{% extends 'aula_virtual/base2.html' %}
+{% extends "aula_virtual/utilidades/base.html" %}
+{% load static %}
 
 {% block content %}
+{% include 'aula_virtual/utilidades/menu-lateral.html' %}
   <div class="container mt-4">
     <h1>{{ asignatura.nombre }}</h1>
     {% if es_profesor %}

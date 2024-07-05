@@ -1,28 +1,37 @@
-{% extends "aula_virtual/base.html" %}
+{% extends "aula_virtual/utilidades/base.html" %}
 {% load static %}
 
 {% block content %}
 <main id="pg-index">
-    <span class="bg-darkblue">
-        <img src="{% static 'aula_virtual/media/Logo-Techzenith.png' %}" alt="">
-    </span>
-    <span>
-        <h1>Ingresa</h1>
-        <form action="" id="form-autentication">
-            <div>
-                <label for="username">Nombre de usuario: </label>
-                <input type="text" name="username" id="in-username">
-            </div>
-            <div>
-                <label for="password">Contraseña</label>
-                <input type="password" name="password" id="in-password">
-            </div>
-            <div>
-                <label for="remindme">Recordarme</label>
-                <input type="checkbox" name="remind-me" id="in-remind-me">
-            </div>
-            <input type="submit" value="Ingresar">
-        </form>
-    </span>
+    <div class="contenedor-imagen bg-darkblue">
+        <img src="{% static 'aula_virtual/media/Logo-Techzenith.png' %}" alt="Logo de la empresa">
+    </div>
+    <div class="contenedor-contenido bg-lightblue">
+        <h1>Ingresa a Aula</h1>
+        <div id="contenedor-login">
+            <form method="post">
+                {% csrf_token %}
+                <div class="mb-3">
+                    <label for="input-username-index" class="form-label">Rut: </label>
+                    <input type="text" class="form-control" id="input-username-index" name="input-username-index">
+                </div>
+                <div class="mb-3">
+                    <label for="input-password-index" class="form-label">Contraseña: </label>
+                    <input type="password" class="form-control" id="input-password-index" name="input-password-index">
+                </div>
+                <div class="mb-3 form-check">
+                    <input type="checkbox" class="form-check-input" id="check-recordarme-index" name="check-recordarme-index">
+                    <label class="form-check-label" for="check-recordarme-index">Recordarme</label>
+                </div>
+                <div class="contenedor-botones">
+                    <a href="#">Olvide mi contraseña</a>
+                    <button type="submit" class="btn btn-primary">Iniciar sesion</button>
+                </div>
+                <div class="contenedor-mensajes">
+                    <p>{{usuario_invalido}}</p>
+                </div>
+            </form>        
+        </div>
+    </div> 
 </main>
 {% endblock %}

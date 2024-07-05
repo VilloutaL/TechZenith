@@ -1,8 +1,8 @@
-
-
-{% extends 'aula_virtual/base2.html' %}
+{% extends "aula_virtual/utilidades/base.html" %}
+{% load static %}
 
 {% block content %}
+{% include 'aula_virtual/utilidades/menu-lateral.html' %}
   <div class="container mt-4">
     <h1>Editar Material</h1>
     <form method="post" enctype="multipart/form-data">
