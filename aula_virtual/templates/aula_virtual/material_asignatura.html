@@ -12,13 +12,12 @@
     <div class="row">
       {% for material in materiales %}
         <div class="col-md-4 mb-4">
-          <div class="card">
+          <div class="card" style="width: 18rem;">
             <div class="card-body">
               <h5 class="card-title">{{ material.titulo }}</h5>
               <p class="card-text">{{ material.descripcion }}</p>
               <a href="{% url 'descargar_material' material.id %}" class="btn btn-primary">Descargar</a>
-
-            
+              </div>
               {% if es_profesor %}
                 <a href="{% url 'editar_material' material.id %}" class="btn btn-warning">Editar</a>
                 <a href="{% url 'borrar_material' material.id %}" class="btn btn-danger">Borrar</a>

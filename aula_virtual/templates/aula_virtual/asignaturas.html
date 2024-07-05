@@ -10,11 +10,10 @@
         <div class="col-md-4 mb-4">
           <div class="card">
             {% if asignatura.imagen %}
-            <img src="{{ asignatura.imagen.url }}" class="card-img-top" alt="{{ asignatura.nombre }}">
+            <img src="{{ asignatura.imagen.url }}" class="card-img-top" alt="{{ asignatura.nombre }}" width="150px" height=" 300px">
             {% endif %}
             <div class="card-body">
               <h5 class="card-title">{{ asignatura.nombre }}</h5>
-              <p class="card-text">Descripción breve de la asignatura.</p>
               <a href="{% url 'material_asignatura' asignatura.id %}" class="btn btn-primary">Ver Asignatura</a>
             </div>
           </div>
