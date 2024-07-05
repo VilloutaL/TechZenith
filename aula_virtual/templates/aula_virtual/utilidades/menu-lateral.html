@@ -1,0 +1,23 @@
+{% load static %}
+<aside id="menu-lateral" class="bg-darkblue">
+    <img src="{% static 'aula_virtual/media/Logo-Techzenith.png' %}" alt="Logo de TechZenith">
+    <hr>
+    <nav>
+        <ul>
+            <li><a href="{% url 'home' %}">Home</a></li>
+            <li><a href="{% url 'logout' %}">Cerrar sesion</a></li>
+        {% if es_administrador %}
+            <li><a href="/nuevo-usuario">Gestión de usuarios</a></li>
+        {% endif %}
+        {% if es_profesor %}
+
+        {% endif %}
+        {% if es_alumno %}
+
+        {% endif %}
+        {% if es_apoderado %}
+
+        {% endif %}
+        </ul>
+    </nav>
+</aside>

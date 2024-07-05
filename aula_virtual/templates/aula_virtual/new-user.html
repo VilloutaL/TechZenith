@@ -1,10 +1,8 @@
-{% extends "aula_virtual/base.html" %}
+{% extends "aula_virtual/utilidades/base.html" %}
 {% load static %}
 
 {% block content %}
-<aside id="menu-lateral" class="bg-darkblue">
-    <img src="{% static 'aula_virtual/media/Logo-Techzenith.png' %}" alt="Logo de TechZenith">
-</aside>
+{% include 'aula_virtual/utilidades/menu-lateral.html' %}
 <main id="pg-new-user" class="bg-lightblue">
     <h1>Gestor de usuarios</h1>
     <div>

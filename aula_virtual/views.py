@@ -1,16 +1,19 @@
 from django.shortcuts import render, redirect, get_object_or_404
 from django.utils import timezone
-from .models import Usuario, RegistroAsignatura, Asignatura, Token
+from .models import Usuario, RegistroAsignatura, Asignatura, Token, Asistencia, AsistenciaJustificacion
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.models import Group
-from django.contrib.auth import authenticate, login
-from django.http import JsonResponse
+from django.contrib.auth import authenticate, login, logout
+from django.http import JsonResponse, HttpResponseBadRequest
 from django.contrib import messages
 from django.core.mail import send_mail
 from .forms import AnuncioForm
 from .models import Anuncio
 from .models import Notificacion
 import json
+from datetime import datetime
+from django.urls import reverse
+from urllib.parse import urlencode
 import secrets
 from django.contrib.auth.decorators import login_required
 import string
@@ -73,11 +76,32 @@ def lista_anuncios_usuario(request):
 def anuncio_creado_exitosamente(request):
     return render(request, 'aula_virtual/anuncio_creado_exitosamente.html')
 
+# Funciones de uso general
 def generar_contrasena(longitud):
     caracteres = string.ascii_letters + string.digits + string.punctuation
     contrasena = ''.join(secrets.choice(caracteres) for _ in range(longitud))
     return contrasena
 
+def construir_url_gestion_asistencia(fecha, jornada, id_asignatura=None, rut_alumno=None):
+    # Construir la URL base con parámetros obligatorios
+    url = reverse('gestion_asistencia', args=[fecha, jornada])
+
+    # Agregar parámetros opcionales si están definidos
+    query_params = {}
+    if id_asignatura is not None:
+        query_params['id-asignatura'] = id_asignatura
+    if rut_alumno is not None:
+        query_params['rut-alumno'] = rut_alumno
+
+    # Concatenar parámetros de consulta si hay alguno
+    if query_params:
+        url_with_query = f"{url}?{urlencode(query_params)}"
+    else:
+        url_with_query = url
+
+    return url_with_query
+
+# Vistas que retornan JSON (abria que implementar una api pero meh...)
 def obtener_usuarios(request):
     grupo_nombre = request.GET.get('rol', '')
     
@@ -115,18 +139,19 @@ def obtener_usuario(request):
     
     return JsonResponse(usuario_data, safe=False)
 
+# Views...
 
 def index(request):
-    #if request.user.is_authenticated:
-    #    return redirect('home')
+    if request.user.is_authenticated:
+        return redirect('home')
      
     data = {}
-    data["titulo_de_pagina"] = "Inicio - Aula virtual"
+    data["titulo_pagina"] = "Inicio - Aula virtual"
     
     if request.method == 'POST':
-        username = request.POST['username']
-        password = request.POST['password']
-        recordarme = request.POST.get('recordarme') == 'on'
+        username = request.POST['input-username-index']
+        password = request.POST['input-password-index']
+        recordarme = request.POST.get('check-recordarme-index') == 'on'
 
         user = authenticate(request, username=username, password=password)
 
@@ -136,11 +161,66 @@ def index(request):
                 request.session.set_expiry(0)
             else:
                 request.session.set_expiry(None)  # Usa la duración predeterminada de la sesión
-            messages.success(request, "Usuario autenticado")
+            return redirect('home')
         else:
-            messages.error(request, "Nombre de usuario o contraseña incorrecta.")
+            data["usuario_invalido"] = "Usuario y/o contraseña incorrectos"
+
 
     return render(request, "aula_virtual/index.html", data)
+
+def logout_view(request):
+    logout(request)
+    return redirect('index')
+
+@login_required
+def home(request):
+    data = {}
+    usuario = request.user
+    data['usuario'] = usuario
+
+
+    # Usuario es administrador.
+    if usuario.is_superuser:
+        data["es_administrador"] = True
+    
+
+    # Usuario es Apoderado
+    if usuario.groups.filter(name="Apoderados").exists():
+        data["es_apoderado"] = True
+        alumnos = list(Usuario.objects.all().filter(tutor = usuario))
+        data['mis_alumnos'] = []
+        for alumno in alumnos:
+            asistencias = Asistencia.objects.all().filter(alumno = alumno)
+            ausencias = asistencias.filter(estado='A')
+            asistencias_justificadas = AsistenciaJustificacion.objects.values_list('ID_asistencia', flat=True)
+            ausencias_no_justificadas = list(ausencias.exclude(id__in=asistencias_justificadas))
+            retrasos = asistencias.filter(estado='R')
+            retrasos_no_justificados = list(retrasos.exclude(id__in=asistencias_justificadas))
+        
+            new_alumno = {
+                "nombre": f'{alumno.first_name} {alumno.last_name}',
+                "username": alumno.username,
+                "total_asistencias": len(list(asistencias)),
+                "total_presente": len(list(asistencias.filter(estado = "P"))),
+                "total_ausente": len(list(ausencias)),
+                "total_retraso": len(list(retrasos)),
+                "total_sin_registrar": len(list(asistencias.filter(estado = "S"))),
+                "ausencia_no_justificada": len(ausencias_no_justificadas),
+                "retraso_no_justificado": len(retrasos_no_justificados),
+            }
+            
+                
+            data['mis_alumnos'].append(new_alumno)
+    # Usuario es Alumno
+    if usuario.groups.filter(name="Alumnos").exists():
+        data["es_alumno"] = True
+
+    # Usuario es profesor
+    if usuario.groups.filter(name="Profesores").exists():
+        data["es_profesor"] = True
+        
+    
+    return render(request, 'aula_virtual/home.html', data)
 
 @login_required
 def nuevo_usuario(request):
@@ -266,3 +346,50 @@ def mis_asignaturas(request):
     asignaturas = [registro.asignatura for registro in registros]
     return render(request, 'aula_virtual/asignaturas.html',{'asignaturas': asignaturas})
 
+from django.shortcuts import render, redirect
+from django.http import HttpResponseBadRequest
+from .models import Asistencia, Justificacion, AsistenciaJustificacion
+
+@login_required
+def justificar(request, rut_alumno):
+    usuario = request.user
+    try:
+        alumno = Usuario.objects.get(username=rut_alumno)
+    except Usuario.DoesNotExist:
+        return HttpResponseBadRequest("El rut no es válido")
+    
+    if alumno.tutor != usuario:
+        return render(request, 'aula_virtual/usuario-sin-permiso.html', {})
+
+    asistencias = Asistencia.objects.filter(alumno=alumno)
+    asistencias_justificadas = AsistenciaJustificacion.objects.values_list('ID_asistencia', flat=True)
+    ausencias_no_justificadas = asistencias.filter(estado='A').exclude(id__in=asistencias_justificadas)
+    retrasos_no_justificados = asistencias.filter(estado='R').exclude(id__in=asistencias_justificadas)
+
+    if request.method == 'POST':
+        mensaje = request.POST.get('mensaje')
+        certificado = request.FILES.get('certificado')
+        asistencia_ids = request.POST.getlist('asistencia_ids')
+
+        for asistencia_id in asistencia_ids:
+            try:
+                asistencia = Asistencia.objects.get(pk=asistencia_id, alumno=alumno)
+                justificacion = Justificacion.objects.create(
+                    ID_apoderado=usuario,
+                    mensaje=mensaje,
+                    certificado=certificado,
+                    fecha_justificacion=asistencia.dia
+                )
+                AsistenciaJustificacion.objects.create(ID_asistencia=asistencia, ID_justificacion=justificacion)
+            except Asistencia.DoesNotExist:
+                pass  # Maneja el caso donde la asistencia no exista o no pertenezca al alumno correctamente
+
+        return redirect('home')  # Redirige a donde necesites después de justificar
+
+    data = {
+        'ausencias_no_justificadas': ausencias_no_justificadas,
+        'retrasos_no_justificados': retrasos_no_justificados,
+        'alumno': alumno
+    }
+
+    return render(request, 'aula_virtual/justificar.html', data)
