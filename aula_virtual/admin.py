@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import Usuario, Token, Asistencia, Justificacion, AsistenciaJustificacion, Asignatura, RegistroAsignatura, Material, Evaluacion, Calificacion, AsignaturaEvaluacion
+from .models import Usuario, Token, Asistencia, Justificacion, AsistenciaJustificacion, Asignatura, RegistroAsignatura, Material, Evaluacion, Calificacion, AsignaturaEvaluacion, Anuncio, Notificacion
 
 # Register your models here.
 admin.site.register(Usuario)
@@ -13,3 +13,5 @@ admin.site.register(Material)
 admin.site.register(Evaluacion)
 admin.site.register(Calificacion)
 admin.site.register(AsignaturaEvaluacion)
+admin.site.register(Anuncio)
+admin.site.register(Notificacion)

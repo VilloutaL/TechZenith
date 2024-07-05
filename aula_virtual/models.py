@@ -26,8 +26,8 @@ class Token(models.Model):
 
 class Asistencia(models.Model):
     class Jornada(models.TextChoices):
-        AM = "AM"
-        PM = "PM"
+        AM = "AM", _("Mañana")
+        PM = "PM", _("Tarde")
     
     class Estado(models.TextChoices):
         PRESENTE = "P", _("Presente")
@@ -35,9 +35,9 @@ class Asistencia(models.Model):
         RETRASADO = "R", _("Retrasado")
 
     dia = models.DateField()
-    jornada = models.CharField(max_length=2, choices=Jornada)
-    estado = models.CharField(max_length=1, choices=Estado)
-    ID_alumno = models.ForeignKey(Usuario, on_delete=models.CASCADE)
+    jornada = models.CharField(max_length=2, choices=Jornada.choices)
+    estado = models.CharField(max_length=1, choices=Estado.choices)
+    ID_alumno = models.ForeignKey('Usuario', on_delete=models.CASCADE)
 
     def __str__(self):
         return f'Asistencia del dia {self.dia} para el alumno {self.ID_alumno}'
@@ -94,3 +94,20 @@ class AsignaturaEvaluacion(models.Model):
     ID_evaluacion = models.ForeignKey(Evaluacion, on_delete=models.CASCADE)
     ID_asignatura = models.ForeignKey(Asignatura, on_delete=models.CASCADE)   
 
+class Anuncio(models.Model):
+    titulo = models.CharField(max_length=200)
+    contenido = models.TextField()
+    fecha_publicacion = models.DateTimeField(default=timezone.now)
+    ultima_actualizacion = models.DateTimeField(auto_now=True)
+    profesor_id = models.ForeignKey(Usuario, on_delete=models.CASCADE, null=True, blank=True)
+    asignatura = models.ForeignKey('Asignatura', on_delete=models.CASCADE)
+    esta_eliminado = models.BooleanField(default=False)
+
+    def __str__(self):
+        return self.titulo
+    
+class Notificacion(models.Model):
+    usuario = models.ForeignKey(Usuario, on_delete=models.CASCADE)
+    mensaje = models.TextField()
+    fecha_creacion = models.DateTimeField(auto_now_add=True)
+    leida = models.BooleanField(default=False)

@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Editar Anuncio</title>
+    <!-- Bootstrap CSS -->
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" integrity="sha384-JcKb8q3iqJ61gNV9KGb8thSsNjpSL0n8PARn9HuZOnIxN0hoP+VmmDGMN5t9UJ0Z" crossorigin="anonymous">
+</head>
+<body>
+    <div class="container mt-4">
+        <h2 class="mb-4">Editar Anuncio</h2>
+        <form method="post">
+            {% csrf_token %}
+            <div class="form-group">
+                {{ form.titulo.label_tag }}
+                {{ form.titulo }}
+            </div>
+            <div class="form-group">
+                {{ form.contenido.label_tag }}
+                {{ form.contenido }}
+            </div>
+            <div class="form-group">
+                {{ form.asignatura.label_tag }}
+                {{ form.asignatura }}
+            </div>
+            <button type="submit" class="btn btn-primary">Guardar Cambios</button>
+            <a href="{% url 'lista_anuncios_usuario' %}" class="btn btn-secondary">Cancelar</a>
+        </form>
+    </div>
+    <!-- Bootstrap JS (opcional, si necesitas funcionalidad como modales o dropdowns) -->
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js" integrity="sha384-B4gt1jrGC7Jh4AgTPSdUtOBvfO8sh+EW+3LlF9YXHRgyA0iKfjPLbMZf6I5Ikv0T" crossorigin="anonymous"></script>
+</body>
+</html>
