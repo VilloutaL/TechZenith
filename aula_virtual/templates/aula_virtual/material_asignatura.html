@@ -8,6 +8,16 @@
     {% if es_profesor %}
       <a href="{% url 'subir_material' asignatura.id %}" class="btn btn-success mb-3">Subir Material</a>
     {% endif %}
+    <div>
+      <ul class="nav nav-underline">
+        <li class="nav-item">
+          <a class="nav-link active" aria-current="page" href="">Material</a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link" href="{% url 'calificaciones_asignatura' asignatura.id %}">Calificaciones</a>
+        </li>
+    </div>
+    
     <h2>Material de la Asignatura</h2>
     <div class="row">
       {% for material in materiales %}

@@ -1,0 +1,56 @@
+{% extends "aula_virtual/utilidades/base.html" %}
+{% load static %}
+
+{% block content %}
+{% include 'aula_virtual/utilidades/menu-lateral.html' %}
+<div class="container mt-4">
+    <h1>Calificaciones de {{ asignatura.nombre }}</h1>
+    <div>
+        <ul class="nav nav-underline">
+            <li class="nav-item">
+                <a class="nav-link" aria-current="page" href="{% url 'material_asignatura' asignatura.id %}">Material</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link active" href="{% url 'calificaciones_asignatura' asignatura.id %}">Calificaciones</a>
+            </li>
+        </ul>
+    </div>
+    <div class="table-responsive mt-4">
+        <table class="table table-striped">
+            <thead>
+                <tr>
+                    <th>Evaluación</th>
+                    {% if es_alumno %} 
+                    <th>Comentario</th>
+                    <th>Calificación</th>
+                    {% endif %}
+                </tr>
+            </thead>
+            <tbody>
+                {% if es_alumno %} 
+                {% for calificacion in calificaciones %}
+                    <tr>
+                        <td>{{ calificacion.ID_evaluacion.titulo }}</td>
+                        <td>{{ calificacion.comentario }}</td>
+                        <td>{{ calificacion.calificacion }}</td>
+                        
+                        
+                    </tr>
+                {% endfor %}
+                {% endif %}
+                {% if es_profesor %}
+                {% for evaluacion in evaluaciones %}
+                    <tr>
+                        <td>{{ evaluacion.titulo }}</td>
+                        <td>
+                            <a href="{% url 'agregar_calificacion' evaluacion.id %}" class="btn btn-primary">Agregar Calificaciones</a>
+                        </td>
+                    </tr>
+                {% endfor %}
+                {% endif %}
+            </tbody>
+            
+        </table>
+    </div>
+</div>
+{% endblock %}

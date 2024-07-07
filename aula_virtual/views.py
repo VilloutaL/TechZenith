@@ -423,19 +423,66 @@ def justificar(request, rut_alumno):
 
 
 @login_required
-def calificaciones(request):
+def calificaciones_asignatura(request, asignatura_id):
     usuario = request.user
-    registros_asignatura = RegistroAsignatura.objects.filter(usuario=usuario)
-    asignaturas_usuario = Asignatura.objects.filter(id__in=registros_asignatura.values('asignatura_id'))
+    asignatura = get_object_or_404(Asignatura, id=asignatura_id)
+    calificaciones = Calificacion.objects.filter(ID_usuario=usuario, ID_evaluacion__asignatura=asignatura)
+    evaluaciones = Evaluacion.objects.filter(asignatura=asignatura)
+    estudiantes = RegistroAsignatura.objects.filter(asignatura_id=asignatura, rol='ALUMNO').select_related('usuario')
 
-    calificaciones = Calificacion.objects.filter(ID_usuario=usuario)
+    es_profesor = RegistroAsignatura.objects.filter(asignatura_id=asignatura, usuario=request.user, rol='PROFESOR').exists()
+    es_alumno = RegistroAsignatura.objects.filter(asignatura_id=asignatura, usuario=request.user, rol='ALUMNO').exists()
 
-    asignatura_id = request.GET.get('asignatura')
-    if asignatura_id:
-        calificaciones = calificaciones.filter(ID_evaluacion__asignatura__id=asignatura_id)
+    if not es_profesor and not es_alumno:
+        raise PermissionDenied
 
-    return render(request, 'aula_virtual/calificaciones.html', {
+
+    return render(request, 'aula_virtual/calificaciones_asignatura.html', {
+        'asignatura': asignatura,
         'calificaciones': calificaciones,
-        'asignaturas': asignaturas_usuario,
-        'asignatura_id': asignatura_id,
+        'es_profesor': es_profesor,
+        'es_alumno': es_alumno,
+        'evaluaciones': evaluaciones,
+        'estudiantes': [e.usuario for e in estudiantes],
+        
+    })
+
+
+@login_required
+def agregar_calificacion(request, evaluacion_id):
+    evaluacion = get_object_or_404(Evaluacion, id=evaluacion_id)
+    asignatura = evaluacion.asignatura
+    es_profesor = RegistroAsignatura.objects.filter(asignatura_id=asignatura, usuario=request.user, rol='PROFESOR').exists()
+
+    if not es_profesor:
+        raise PermissionDenied
+
+    if request.method == 'POST':
+        for usuario_id in request.POST.getlist('usuario_id'):
+            comentario = request.POST.get(f'comentario_{usuario_id}')
+            calificacion = request.POST.get(f'calificacion_{usuario_id}')
+            if calificacion:
+                usuario = get_object_or_404(Usuario, id=usuario_id)
+                Calificacion.objects.update_or_create(
+                    ID_usuario=usuario,
+                    ID_evaluacion=evaluacion,
+                    defaults={'comentario': comentario, 'calificacion': calificacion}
+                )
+        return redirect('calificaciones_asignatura', asignatura_id=asignatura.id)
+
+    estudiantes = RegistroAsignatura.objects.filter(asignatura_id=asignatura, rol='ALUMNO').select_related('usuario')
+    calificaciones = Calificacion.objects.filter(ID_evaluacion=evaluacion)
+    estudiantes_calificaciones = []
+
+    for estudiante in estudiantes:
+        calificacion = calificaciones.filter(ID_usuario=estudiante.usuario).first()
+        estudiantes_calificaciones.append({
+            'estudiante': estudiante.usuario,
+            'calificacion': calificacion
+        })
+
+    return render(request, 'aula_virtual/agregar_calificacion.html', {
+        'evaluacion': evaluacion,
+        'asignatura': asignatura,
+        'estudiantes_calificaciones':estudiantes_calificaciones
     })

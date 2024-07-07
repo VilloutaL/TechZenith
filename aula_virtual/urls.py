@@ -18,5 +18,6 @@ urlpatterns = [
     path('material/<int:id>/editar/', views.editar_material, name='editar_material'),
     path('material/<int:id>/borrar/', views.borrar_material, name='borrar_material'),
     path('material/<int:id>/descargar/', views.descargar_material, name='descargar_material'),
-    path('calificaciones/', views.calificaciones, name='calificaciones'),
+    path('asignatura/<int:asignatura_id>/calificaciones/', views.calificaciones_asignatura, name='calificaciones_asignatura'),
+    path('evaluacion/<int:evaluacion_id>/agregar-calificacion/', views.agregar_calificacion, name='agregar_calificacion'),
 ]
