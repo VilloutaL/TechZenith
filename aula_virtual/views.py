@@ -1,6 +1,6 @@
 from django.shortcuts import render, redirect, get_object_or_404
 from django.utils import timezone
-from .models import Usuario, RegistroAsignatura, Asignatura, Token, Asistencia, AsistenciaJustificacion, Material, Justificacion
+from .models import Usuario, RegistroAsignatura, Asignatura, Token,Calificacion, Asistencia, AsistenciaJustificacion, Material, Justificacion, Evaluacion, RegistroAsignatura
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.models import Group
 from django.contrib.auth import authenticate, login, logout
@@ -420,3 +420,22 @@ def justificar(request, rut_alumno):
     }
 
     return render(request, 'aula_virtual/justificar.html', data)
+
+
+@login_required
+def calificaciones(request):
+    usuario = request.user
+    registros_asignatura = RegistroAsignatura.objects.filter(usuario=usuario)
+    asignaturas_usuario = Asignatura.objects.filter(id__in=registros_asignatura.values('asignatura_id'))
+
+    calificaciones = Calificacion.objects.filter(ID_usuario=usuario)
+
+    asignatura_id = request.GET.get('asignatura')
+    if asignatura_id:
+        calificaciones = calificaciones.filter(ID_evaluacion__asignatura__id=asignatura_id)
+
+    return render(request, 'aula_virtual/calificaciones.html', {
+        'calificaciones': calificaciones,
+        'asignaturas': asignaturas_usuario,
+        'asignatura_id': asignatura_id,
+    })

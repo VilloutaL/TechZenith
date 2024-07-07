@@ -1,0 +1,45 @@
+{% extends "aula_virtual/utilidades/base.html" %}
+{% load static %}
+
+{% block content %}
+{% include 'aula_virtual/utilidades/menu-lateral.html' %}
+<div class="container mt-4">
+    <h1>Mis Calificaciones</h1>
+    <form method="get" class="mb-4">
+        <div class="form-group">
+            <label for="asignatura">Filtrar por Asignatura:</label>
+            <select id="asignatura" name="asignatura" class="form-control">
+                <option value="">Todas las Asignaturas</option>
+                {% for asignatura in asignaturas %}
+                    <option value="{{ asignatura.id }}" {% if asignatura.id|stringformat:"s" == asignatura_id %}selected{% endif %}>
+                        {{ asignatura.nombre }}
+                    </option>
+                {% endfor %}
+            </select>
+        </div>
+        <button type="submit" class="btn btn-primary">Filtrar</button>
+    </form>
+    <div class="table-responsive">
+        <table class="table table-striped">
+            <thead>
+                <tr>
+                    <th>Asignatura</th>
+                    <th>Evaluación</th>
+                    <th>Comentario</th>
+                    <th>Calificación</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for calificacion in calificaciones %}
+                    <tr>
+                        <td>{{ calificacion.ID_evaluacion.asignatura.nombre }}</td>
+                        <td>{{ calificacion.ID_evaluacion.titulo }}</td>
+                        <td>{{ calificacion.comentario }}</td>
+                        <td>{{ calificacion.calificacion }}</td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}
