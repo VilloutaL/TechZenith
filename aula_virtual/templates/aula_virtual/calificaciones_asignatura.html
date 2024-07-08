@@ -6,6 +6,11 @@
 <div class="container mt-4">
     <h1>Calificaciones de {{ asignatura.nombre }}</h1>
     <div>
+        {% if es_profesor %}
+            <a href="{% url 'agregar_evaluacion' asignatura.id %}" class="btn btn-success mb-3">Crear Evaluacion</a>
+        {% endif %}
+    </div>
+    <div>
         <ul class="nav nav-underline">
             <li class="nav-item">
                 <a class="nav-link" aria-current="page" href="{% url 'material_asignatura' asignatura.id %}">Material</a>

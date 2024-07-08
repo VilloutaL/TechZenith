@@ -20,4 +20,5 @@ urlpatterns = [
     path('material/<int:id>/descargar/', views.descargar_material, name='descargar_material'),
     path('asignatura/<int:asignatura_id>/calificaciones/', views.calificaciones_asignatura, name='calificaciones_asignatura'),
     path('evaluacion/<int:evaluacion_id>/agregar-calificacion/', views.agregar_calificacion, name='agregar_calificacion'),
+    path('asignatura/<int:asignatura_id>/nueva-evaluacion/', views.agregar_evaluacion, name='agregar_evaluacion'),
 ]

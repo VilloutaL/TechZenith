@@ -1,0 +1,33 @@
+{% extends "aula_virtual/utilidades/base.html" %}
+{% load static %}
+
+{% block content %}
+{% include 'aula_virtual/utilidades/menu-lateral.html' %}
+<div class="container mt-4">
+  <h1>Agregar evaluacion para {{ asignatura.nombre }}</h1>
+  <form method="post" enctype="multipart/form-data">
+    {% csrf_token %}
+    <div class="form-group">
+      <label for="titulo">Título</label>
+      <input type="text" class="form-control" id="titulo" name="titulo" required>
+    </div>
+    <div class="form-group">
+      <label for="descripcion">Descripción</label>
+      <textarea class="form-control" id="descripcion" name="descripcion" required></textarea>
+    </div>
+    <div class="form-group">
+      <label for="fecha_inicio">Fecha Inicio</label>
+      <input type="date" class="form-control-file" id="fecha_inicio" name="fecha_inicio" required>
+    </div>
+    <div class="form-group">
+        <label for="fecha_termino">Fecha Termino</label>
+        <input type="date" class="form-control-file" id="fecha_termino" name="fecha_termino" required>
+    </div>
+    <div class="form-group">
+        <label for="tipo">Tipo</label>
+        <input type="text" class="form-control-file" id="tipo" name="tipo" required>
+      </div>
+    <button type="submit" class="btn btn-primary">Subir</button>
+  </form>
+</div>
+{% endblock %}

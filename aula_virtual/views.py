@@ -295,7 +295,8 @@ def material_asignatura(request, id):
     es_alumno = RegistroAsignatura.objects.filter(asignatura_id=asignatura, usuario=request.user, rol='ALUMNO').exists()
 
     if not es_profesor and not es_alumno:
-        raise PermissionDenied
+        return render(request,'aula_virtual/usuario-sin-permiso.html')
+
 
     context = {
         'asignatura': asignatura,
@@ -315,8 +316,7 @@ def subir_material(request, asignatura_id):
 
     es_profesor = RegistroAsignatura.objects.filter(asignatura_id=asignatura, usuario=request.user, rol='PROFESOR').exists()
     if not es_profesor:
-        raise PermissionDenied 
-    
+        return render(request,'aula_virtual/usuario-sin-permiso.html')
 
     if request.method == 'POST':
         titulo = request.POST.get('titulo')
@@ -342,7 +342,7 @@ def editar_material(request, id):
 
     es_profesor = RegistroAsignatura.objects.filter(asignatura_id=material.asignatura_id, usuario=request.user, rol='PROFESOR').exists()
     if not es_profesor:
-        raise PermissionDenied
+        return render(request,'aula_virtual/usuario-sin-permiso.html')
 
     if request.method == 'POST':
         material.titulo = request.POST.get('titulo')
@@ -360,7 +360,7 @@ def borrar_material(request, id):
 
     es_profesor = RegistroAsignatura.objects.filter(asignatura_id=material.asignatura_id, usuario=request.user, rol='PROFESOR').exists()
     if not es_profesor:
-        raise PermissionDenied
+        return render(request,'aula_virtual/usuario-sin-permiso.html')
 
     if request.method == 'POST':
         material.delete()
@@ -434,7 +434,8 @@ def calificaciones_asignatura(request, asignatura_id):
     es_alumno = RegistroAsignatura.objects.filter(asignatura_id=asignatura, usuario=request.user, rol='ALUMNO').exists()
 
     if not es_profesor and not es_alumno:
-        raise PermissionDenied
+        return render(request,'aula_virtual/usuario-sin-permiso.html')
+
 
 
     return render(request, 'aula_virtual/calificaciones_asignatura.html', {
@@ -455,7 +456,9 @@ def agregar_calificacion(request, evaluacion_id):
     es_profesor = RegistroAsignatura.objects.filter(asignatura_id=asignatura, usuario=request.user, rol='PROFESOR').exists()
 
     if not es_profesor:
-        raise PermissionDenied
+        return render(request,'aula_virtual/usuario-sin-permiso.html')
+
+
 
     if request.method == 'POST':
         for usuario_id in request.POST.getlist('usuario_id'):
@@ -486,3 +489,35 @@ def agregar_calificacion(request, evaluacion_id):
         'asignatura': asignatura,
         'estudiantes_calificaciones':estudiantes_calificaciones
     })
+
+
+@login_required
+def agregar_evaluacion(request, asignatura_id):
+    asignatura = get_object_or_404(Asignatura, id=asignatura_id)
+    es_profesor = RegistroAsignatura.objects.filter(asignatura=asignatura, usuario=request.user, rol='PROFESOR').exists()
+
+    if not es_profesor:
+        return render(request,'aula_virtual/usuario-sin-permiso.html')
+
+    if request.method == 'POST':
+        titulo = request.POST.get('titulo')
+        descripcion = request.POST.get('descripcion')
+        fecha_inicio = request.POST.get('fecha_inicio')
+        fecha_termino = request.POST.get('fecha_termino')
+        tipo = request.POST.get('tipo')
+
+        fecha_inicio = datetime.strptime(fecha_inicio, '%Y-%m-%d')
+        fecha_termino = datetime.strptime(fecha_termino, '%Y-%m-%d')
+        evaluacion = Evaluacion(
+            asignatura=asignatura,
+            titulo=titulo,
+            descripcion=descripcion,
+            fecha_inicio=fecha_inicio,
+            fecha_termino=fecha_termino,
+            tipo=tipo
+
+        )
+        evaluacion.save()
+        return redirect('agregar_evaluacion', asignatura_id=asignatura.id)
+
+    return render(request, 'aula_virtual/agregar_evaluacion.html', {'asignatura': asignatura})

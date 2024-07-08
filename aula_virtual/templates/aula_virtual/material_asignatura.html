@@ -22,12 +22,11 @@
     <div class="row">
       {% for material in materiales %}
         <div class="col-md-4 mb-4">
-          <div class="card" style="width: 18rem;">
+          <div class="card h-100"> <!-- Añade la clase h-100 para hacer que todas las cards tengan la misma altura -->
             <div class="card-body">
               <h5 class="card-title">{{ material.titulo }}</h5>
               <p class="card-text">{{ material.descripcion }}</p>
               <a href="{% url 'descargar_material' material.id %}" class="btn btn-primary">Descargar</a>
-              </div>
               {% if es_profesor %}
                 <a href="{% url 'editar_material' material.id %}" class="btn btn-warning">Editar</a>
                 <a href="{% url 'borrar_material' material.id %}" class="btn btn-danger">Borrar</a>
@@ -35,7 +34,9 @@
             </div>
           </div>
         </div>
+        {% if forloop.counter|divisibleby:3 %} <!-- Divide las cards en filas de 3 -->
+          </div><div class="row">
+        {% endif %}
       {% endfor %}
     </div>
-  </div>
 {% endblock %}
