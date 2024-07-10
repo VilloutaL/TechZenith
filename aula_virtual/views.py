@@ -19,6 +19,45 @@ from django.contrib.auth.decorators import login_required
 import string
 import uuid
 from .utils import enviar_notificacion_a_alumnos
+from django.utils.http import urlsafe_base64_encode
+from django.utils.encoding import force_bytes
+from django.contrib.auth.tokens import default_token_generator
+from django.template.loader import render_to_string
+from django.utils.translation import gettext as _
+from django.contrib.auth.views import PasswordResetView
+from .forms import CustomPasswordResetForm
+
+class CustomPasswordResetView(PasswordResetView):
+    form_class = CustomPasswordResetForm
+    template_name = 'registration/password_reset_form.html'
+
+def password_reset_request(request):
+    if request.method == "POST":
+        email = request.POST.get("email")
+        associated_users = Usuario.objects.filter(email=email)
+        if associated_users.exists():
+            for user in associated_users:
+                subject = _("Solicitud de restablecimiento de contraseña")
+                email_template_name = "registration/password_reset_email.html"
+                c = {
+                    "email": user.email,
+                    "domain": request.META['HTTP_HOST'],
+                    "site_name": "TechZenith",
+                    "uid": urlsafe_base64_encode(force_bytes(user.pk)),
+                    "user": user,
+                    "token": default_token_generator.make_token(user),
+                    "protocol": "http",
+                }
+                email = render_to_string(email_template_name, c)
+                try:
+                    send_mail(subject, email, 'admin@techzenith.com', [user.email], fail_silently=False)
+                except Exception as e:
+                    messages.error(request, f"Error enviando el correo: {e}")
+                messages.success(request, _("Se ha enviado un correo electrónico con instrucciones para restablecer su contraseña."))
+                return redirect("/")
+        else:
+            messages.error(request, _("No se encontró una cuenta con esa dirección de correo electrónico."))
+    return render(request, "registration/password_reset_form.html")
 
 def cargar_notificaciones(request):
     usuario = request.user
