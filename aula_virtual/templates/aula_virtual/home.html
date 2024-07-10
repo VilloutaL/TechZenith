@@ -11,7 +11,40 @@
     <p>Usuario profesor</p>
     {% endif %}
     {% if es_alumno %}
-    <p>Usuario alumno</p>
+        <div class="container mt-4">
+            <div class="row">
+                <div class="col-md-8">
+                    <h1>Bienvenido/a {{ usuario.first_name }} {{ usuario.last_name }}</h1>
+                    <h2>Últimos Anuncios:</h2>
+                    <form method="get">
+                        <div class="form-group">
+                            <label for="selectAsignatura">Seleccionar Asignatura:</label>
+                            <select class="form-control" id="selectAsignatura" name="asignatura">
+                                <option value="">Todas las asignaturas</option>
+                                {% for asignatura in asignaturas %}
+                                    <option value="{{ asignatura.id }}">{{ asignatura.nombre }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <button type="submit" class="btn btn-primary">Filtrar</button>
+                    </form>
+                    {% for anuncio in anuncios %}
+                        {% if not asignatura_filtro or asignatura_filtro == anuncio.asignatura.id %}
+                            <div class="card mb-3">
+                                <div class="card-body">
+                                    <h5 class="card-title">{{ anuncio.titulo }}</h5>
+                                    <p class="card-text">{{ anuncio.contenido }}</p>
+                                    <p class="card-text"><small class="text-muted">Publicado el {{ anuncio.fecha_publicacion|date:"d/m/Y" }}</small></p>
+                                </div>
+                            </div>
+                        {% endif %}
+                    {% endfor %}
+                </div>
+                <div class="col-md-4">
+                    <!-- Aquí puedes agregar otros elementos o información adicional -->
+                </div>
+            </div>
+        </div>
     {% endif %}
     {% if es_apoderado %}
     <h1>Bienvenido/a {{usuario.first_name}} {{usuario.last_name}}</h1>

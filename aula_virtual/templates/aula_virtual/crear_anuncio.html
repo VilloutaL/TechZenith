@@ -1,12 +1,18 @@
-<!DOCTYPE html>
-<html>
-<head>
-    <title>Crear Anuncio</title>
-    <!-- Bootstrap CSS -->
-    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" integrity="sha384-JcKb8q3iqJ61gNV9KGb8thSsNjpSL0n8PARn9HuZOnIxN0hoP+VmmDGMN5t9UJ0Z" crossorigin="anonymous">
-</head>
+{% extends "aula_virtual/utilidades/base.html" %}
+{% load static %}
+
+{% block content %}
+{% include 'aula_virtual/utilidades/menu-lateral.html' %}
 <body>
-    <div class="container">
+    <div class="container mt-4">
+        <div class="d-flex justify-content-end mb-4">
+            <button id="btn-notificaciones" class="btn btn-outline-primary">Notificaciones</button>
+        </div>
+    
+        <!-- Contenedor de Notificaciones -->
+        <div id="contenedor-notificaciones" class="container mt-4">
+            <!-- Aquí se cargarán las notificaciones -->
+        </div>
         <h2 class="mt-4 mb-4">Crear Anuncio</h2>
         <form method="post">
             {% csrf_token %}
@@ -23,9 +29,50 @@
                 {{ form.asignatura }}
             </div>
             <button type="submit" class="btn btn-primary">Guardar Anuncio</button>
+            <a href="{% url 'lista_anuncios_usuario' %}" class="btn btn-secondary">Cancelar</a>
         </form>
     </div>
     <!-- Bootstrap JS (opcional, si necesitas funcionalidad como modales o dropdowns) -->
     <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js" integrity="sha384-B4gt1jrGC7Jh4AgTPSdUtOBvfO8sh+EW+3LlF9YXHRgyA0iKfjPLbMZf6I5Ikv0T" crossorigin="anonymous"></script>
+    <script>
+        $(document).ready(function() {
+            // Función para cargar y mostrar notificaciones
+            function cargarNotificaciones() {
+                $.ajax({
+                    url: '{% url "api_cargar_notificaciones" %}',
+                    method: 'GET',
+                    success: function(data) {
+                        // Limpiar el contenedor de notificaciones
+                        $('#contenedor-notificaciones').empty();
+
+                        // Mostrar cada notificación
+                        data.forEach(function(notificacion) {
+                            var alertClass = notificacion.leida ? 'alert-secondary' : 'alert-info'; // Clase diferente para notificaciones leídas y no leídas
+                            $('#contenedor-notificaciones').append(`
+                                <div class="alert ${alertClass} alert-dismissible fade show" role="alert">
+                                    <strong>Nueva Notificación:</strong> ${notificacion.mensaje}
+                                    <button type="button" class="close" data-dismiss="alert" aria-label="Cerrar">
+                                        <span aria-hidden="true">&times;</span>
+                                    </button>
+                                </div>
+                            `);
+                        });
+                    }
+                });
+            }
+
+            // Cargar notificaciones al cargar la página
+            cargarNotificaciones();
+
+            // Actualizar notificaciones cada cierto intervalo (opcional)
+            setInterval(cargarNotificaciones, 60000);  // Cada 1 minuto, por ejemplo
+
+            // Mostrar notificaciones al hacer clic en el botón
+            $('#btn-notificaciones').click(function() {
+                $('#contenedor-notificaciones').toggle();  // Mostrar u ocultar contenedor
+            });
+        });
+    </script>
 </body>
 </html>
+{% endblock %}

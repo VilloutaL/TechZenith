@@ -18,6 +18,46 @@ import secrets
 from django.contrib.auth.decorators import login_required
 import string
 import uuid
+from .utils import enviar_notificacion_a_alumnos
+from django.utils.http import urlsafe_base64_encode
+from django.utils.encoding import force_bytes
+from django.contrib.auth.tokens import default_token_generator
+from django.template.loader import render_to_string
+from django.utils.translation import gettext as _
+from django.contrib.auth.views import PasswordResetView
+from .forms import CustomPasswordResetForm
+
+class CustomPasswordResetView(PasswordResetView):
+    form_class = CustomPasswordResetForm
+    template_name = 'registration/password_reset_form.html'
+
+def password_reset_request(request):
+    if request.method == "POST":
+        email = request.POST.get("email")
+        associated_users = Usuario.objects.filter(email=email)
+        if associated_users.exists():
+            for user in associated_users:
+                subject = _("Solicitud de restablecimiento de contraseña")
+                email_template_name = "registration/password_reset_email.html"
+                c = {
+                    "email": user.email,
+                    "domain": request.META['HTTP_HOST'],
+                    "site_name": "TechZenith",
+                    "uid": urlsafe_base64_encode(force_bytes(user.pk)),
+                    "user": user,
+                    "token": default_token_generator.make_token(user),
+                    "protocol": "http",
+                }
+                email = render_to_string(email_template_name, c)
+                try:
+                    send_mail(subject, email, 'admin@techzenith.com', [user.email], fail_silently=False)
+                except Exception as e:
+                    messages.error(request, f"Error enviando el correo: {e}")
+                messages.success(request, _("Se ha enviado un correo electrónico con instrucciones para restablecer su contraseña."))
+                return redirect("/")
+        else:
+            messages.error(request, _("No se encontró una cuenta con esa dirección de correo electrónico."))
+    return render(request, "registration/password_reset_form.html")
 
 def cargar_notificaciones(request):
     usuario = request.user
@@ -37,6 +77,7 @@ def crear_anuncio(request):
             # Asigna la instancia del usuario como profesor_id del anuncio
             form.profesor_id = usuario_actual
             form.save()
+            enviar_notificacion_a_alumnos(form)
             # Redirige a una URL específica después de crear el anuncio
             return redirect('lista_anuncios_usuario')  # Define esta URL según tu necesidad
     else:
@@ -213,13 +254,23 @@ def home(request):
             data['mis_alumnos'].append(new_alumno)
     # Usuario es Alumno
     if usuario.groups.filter(name="Alumnos").exists():
+    #if usuario.is_superuser:
         data["es_alumno"] = True
+        # Obtener todas las asignaturas en las que el alumno está inscrito
+        asignaturas_usuario = RegistroAsignatura.objects.filter(usuario=usuario).values_list('asignatura', flat=True)
 
+        # Obtener los objetos de asignatura a partir de las IDs obtenidas
+        asignaturas = Asignatura.objects.filter(id__in=asignaturas_usuario)
+
+        # Obtener los anuncios que corresponden a estas asignaturas
+        anuncios = Anuncio.objects.filter(asignatura__in=asignaturas)
+
+        data['asignaturas'] = asignaturas
+        data['anuncios'] = anuncios
     # Usuario es profesor
     if usuario.groups.filter(name="Profesores").exists():
         data["es_profesor"] = True
         
-    
     return render(request, 'aula_virtual/home.html', data)
 
 @login_required
