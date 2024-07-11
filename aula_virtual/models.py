@@ -56,6 +56,7 @@ class AsistenciaJustificacion(models.Model):
 
 class Asignatura(models.Model):
     nombre = models.CharField(max_length=50)
+    imagen = models.ImageField(upload_to='static/aulavirtual/media/', null=True, blank=True)
     def __str__(self):
         return self.nombre
     
@@ -73,8 +74,11 @@ class Material(models.Model):
     profesor = models.ForeignKey(Usuario, on_delete=models.CASCADE)
     titulo = models.CharField(max_length=255)
     descripcion = models.TextField()
-    archivo = models.FileField()
-    fecha_publicacion = models.DateField()
+    archivo = models.FileField(upload_to ='aula_virtual/uploads/', null=True, blank=True)
+    fecha_publicacion = models.DateField(auto_now_add=True, blank=True)
+    
+    def __str__(self):
+        return self.titulo
 
 class Evaluacion(models.Model):
     asignatura = models.ForeignKey(Asignatura, on_delete=models.CASCADE)

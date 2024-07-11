@@ -1,11 +1,25 @@
-{% extends 'aula_virtual/base.html' %}
+{% extends "aula_virtual/utilidades/base.html" %}
+{% load static %}
 
 {% block content %}
-<h1>Mis Asignaturas</h1>
-<ul>
-    {% for asignatura in asignaturas %}
-    <li>{{ asignatura.nombre }}</li>
-    {% endfor %}
-</ul>
-
+{% include 'aula_virtual/utilidades/menu-lateral.html' %}
+  <div class="container mt-4">
+    <h1>Mis Asignaturas</h1>
+    <div class="row">
+      {% for asignatura in asignaturas %}
+        <div class="col-md-4 mb-4">
+          <div class="card">
+            {% if asignatura.imagen %}
+            <img src="{{ asignatura.imagen.url }}" class="card-img-top" alt="{{ asignatura.nombre }}" width="150px" height=" 300px">
+            {% endif %}
+            <div class="card-body">
+              <h5 class="card-title">{{ asignatura.nombre }}</h5>
+              <a href="{% url 'material_asignatura' asignatura.id %}" class="btn btn-primary">Ver Asignatura</a>
+            </div>
+          </div>
+        </div>
+      {% endfor %}
+    </div>
+  </div>
 {% endblock %}
+

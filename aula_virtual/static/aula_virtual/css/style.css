@@ -195,3 +195,17 @@ hr {
     width: 100%;
     text-align: center;
 }
+
+.sidebar-logo {
+    width: 75%;
+    max-width: 300px; 
+    margin: 0 auto; 
+    display: block;
+}
+
+.sidebar-logo {
+    width: 75%;
+    max-width: 300px; 
+    margin: 0 auto; 
+    display: block;
+}

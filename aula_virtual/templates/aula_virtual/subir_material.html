@@ -1,0 +1,25 @@
+{% extends "aula_virtual/utilidades/base.html" %}
+{% load static %}
+
+{% block content %}
+{% include 'aula_virtual/utilidades/menu-lateral.html' %}
+<div class="container mt-4">
+  <h1>Subir Material para {{ asignatura.nombre }}</h1>
+  <form method="post" enctype="multipart/form-data">
+    {% csrf_token %}
+    <div class="form-group">
+      <label for="titulo">Título</label>
+      <input type="text" class="form-control" id="titulo" name="titulo" required>
+    </div>
+    <div class="form-group">
+      <label for="descripcion">Descripción</label>
+      <textarea class="form-control" id="descripcion" name="descripcion" required></textarea>
+    </div>
+    <div class="form-group">
+      <label for="archivo">Archivo</label>
+      <input type="file" class="form-control-file" id="archivo" name="archivo" required>
+    </div>
+    <button type="submit" class="btn btn-primary">Subir</button>
+  </form>
+</div>
+{% endblock %}

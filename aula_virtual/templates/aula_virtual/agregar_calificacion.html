@@ -1,0 +1,40 @@
+{% extends "aula_virtual/utilidades/base.html" %}
+{% load static %}
+
+{% block content %}
+{% include 'aula_virtual/utilidades/menu-lateral.html' %}
+<div class="container mt-4">
+    <h1>Agregar/Editar Calificaciones - {{ evaluacion.titulo }}</h1>
+    <form method="post">
+        {% csrf_token %}
+        <table class="table table-striped">
+            <thead>
+                <tr>
+                    <th>Estudiante</th>
+                    <th>Comentario</th>
+                    <th>Calificación</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for ec in estudiantes_calificaciones %}
+                    <tr>
+                        <td>{{ ec.estudiante.get_full_name }}</td>
+                        <td>
+                            <input type="text" name="comentario_{{ ec.estudiante.id }}" class="form-control" value="{{ ec.calificacion.comentario|default_if_none:'' }}">
+                        </td>
+                        <td>
+                            <input type="number" name="calificacion_{{ ec.estudiante.id }}" class="form-control" step="0.01" value="{{ ec.calificacion.calificacion|default_if_none:'' }}">
+                            <input type="hidden" name="usuario_id" value="{{ ec.estudiante.id }}">
+                        </td>
+                    </tr>
+                {% empty %}
+                    <tr>
+                        <td colspan="3">No se encontraron estudiantes.</td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        <button type="submit" class="btn btn-success">Guardar Calificaciones</button>
+    </form>
+</div>
+{% endblock %}

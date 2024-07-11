@@ -1,10 +1,11 @@
 from django.shortcuts import render, redirect, get_object_or_404
 from django.utils import timezone
-from .models import Usuario, RegistroAsignatura, Asignatura, Token, Asistencia, AsistenciaJustificacion
+from .models import Usuario, RegistroAsignatura, Asignatura, Token,Calificacion, Asistencia, AsistenciaJustificacion, Material, Justificacion, Evaluacion, RegistroAsignatura
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.models import Group
 from django.contrib.auth import authenticate, login, logout
-from django.http import JsonResponse, HttpResponseBadRequest
+from django.http import JsonResponse, HttpResponseBadRequest, Http404, FileResponse
+from django.core.exceptions import PermissionDenied
 from django.contrib import messages
 from django.core.mail import send_mail
 from .forms import AnuncioForm
@@ -397,9 +398,97 @@ def mis_asignaturas(request):
     asignaturas = [registro.asignatura for registro in registros]
     return render(request, 'aula_virtual/asignaturas.html',{'asignaturas': asignaturas})
 
-from django.shortcuts import render, redirect
-from django.http import HttpResponseBadRequest
-from .models import Asistencia, Justificacion, AsistenciaJustificacion
+
+@login_required
+def material_asignatura(request, id):
+    asignatura = get_object_or_404(Asignatura, id=id)
+    materiales = Material.objects.filter(asignatura_id=asignatura)
+
+    es_profesor = RegistroAsignatura.objects.filter(asignatura_id=asignatura, usuario=request.user, rol='PROFESOR').exists()
+    es_alumno = RegistroAsignatura.objects.filter(asignatura_id=asignatura, usuario=request.user, rol='ALUMNO').exists()
+
+    if not es_profesor and not es_alumno:
+        return render(request,'aula_virtual/usuario-sin-permiso.html')
+
+
+    context = {
+        'asignatura': asignatura,
+        'materiales': materiales,
+        'es_profesor': es_profesor,
+        'es_alumno': es_alumno
+    }
+
+
+    return render(request, 'aula_virtual/material_asignatura.html', context)
+
+
+
+@login_required
+def subir_material(request, asignatura_id):
+    asignatura = get_object_or_404(Asignatura, id=asignatura_id)
+
+    es_profesor = RegistroAsignatura.objects.filter(asignatura_id=asignatura, usuario=request.user, rol='PROFESOR').exists()
+    if not es_profesor:
+        return render(request,'aula_virtual/usuario-sin-permiso.html')
+
+    if request.method == 'POST':
+        titulo = request.POST.get('titulo')
+        descripcion = request.POST.get('descripcion')
+        archivo = request.FILES['archivo']
+
+        material = Material(
+            asignatura=asignatura,
+            profesor=request.user,
+            titulo=titulo,
+            descripcion=descripcion,
+            archivo=archivo
+
+        )
+        material.save()
+        return redirect('material_asignatura', id=asignatura_id)
+
+    return render(request, 'aula_virtual/subir_material.html', {'asignatura': asignatura})
+
+@login_required
+def editar_material(request, id):
+    material = get_object_or_404(Material, id=id)
+
+    es_profesor = RegistroAsignatura.objects.filter(asignatura_id=material.asignatura_id, usuario=request.user, rol='PROFESOR').exists()
+    if not es_profesor:
+        return render(request,'aula_virtual/usuario-sin-permiso.html')
+
+    if request.method == 'POST':
+        material.titulo = request.POST.get('titulo')
+        material.descripcion = request.POST.get('descripcion')
+        if 'archivo' in request.FILES:
+            material.archivo = request.FILES['archivo']
+        material.save()
+        return redirect('material_asignatura', id=material.asignatura.id)
+
+    return render(request, 'aula_virtual/editar_material.html', {'material': material})
+
+@login_required
+def borrar_material(request, id):
+    material = get_object_or_404(Material, id=id)
+
+    es_profesor = RegistroAsignatura.objects.filter(asignatura_id=material.asignatura_id, usuario=request.user, rol='PROFESOR').exists()
+    if not es_profesor:
+        return render(request,'aula_virtual/usuario-sin-permiso.html')
+
+    if request.method == 'POST':
+        material.delete()
+        return redirect('material_asignatura', id=material.asignatura.id)
+    return render(request, 'aula_virtual/borrar_material.html', {'material': material})
+
+@login_required
+def descargar_material(request, id):
+    material = get_object_or_404(Material, id=id)
+    
+    # Verifica que el usuario esté registrado en la asignatura
+    if not RegistroAsignatura.objects.filter(usuario=request.user, asignatura_id=material.asignatura).exists():
+        raise Http404("No está autorizado para acceder a este material")
+    
+    return FileResponse(material.archivo, as_attachment=True, filename=material.archivo.name)
 
 @login_required
 def justificar(request, rut_alumno):
@@ -444,3 +533,104 @@ def justificar(request, rut_alumno):
     }
 
     return render(request, 'aula_virtual/justificar.html', data)
+
+
+@login_required
+def calificaciones_asignatura(request, asignatura_id):
+    usuario = request.user
+    asignatura = get_object_or_404(Asignatura, id=asignatura_id)
+    calificaciones = Calificacion.objects.filter(ID_usuario=usuario, ID_evaluacion__asignatura=asignatura)
+    evaluaciones = Evaluacion.objects.filter(asignatura=asignatura)
+    estudiantes = RegistroAsignatura.objects.filter(asignatura_id=asignatura, rol='ALUMNO').select_related('usuario')
+
+    es_profesor = RegistroAsignatura.objects.filter(asignatura_id=asignatura, usuario=request.user, rol='PROFESOR').exists()
+    es_alumno = RegistroAsignatura.objects.filter(asignatura_id=asignatura, usuario=request.user, rol='ALUMNO').exists()
+
+    if not es_profesor and not es_alumno:
+        return render(request,'aula_virtual/usuario-sin-permiso.html')
+
+
+
+    return render(request, 'aula_virtual/calificaciones_asignatura.html', {
+        'asignatura': asignatura,
+        'calificaciones': calificaciones,
+        'es_profesor': es_profesor,
+        'es_alumno': es_alumno,
+        'evaluaciones': evaluaciones,
+        'estudiantes': [e.usuario for e in estudiantes],
+        
+    })
+
+
+@login_required
+def agregar_calificacion(request, evaluacion_id):
+    evaluacion = get_object_or_404(Evaluacion, id=evaluacion_id)
+    asignatura = evaluacion.asignatura
+    es_profesor = RegistroAsignatura.objects.filter(asignatura_id=asignatura, usuario=request.user, rol='PROFESOR').exists()
+
+    if not es_profesor:
+        return render(request,'aula_virtual/usuario-sin-permiso.html')
+
+
+
+    if request.method == 'POST':
+        for usuario_id in request.POST.getlist('usuario_id'):
+            comentario = request.POST.get(f'comentario_{usuario_id}')
+            calificacion = request.POST.get(f'calificacion_{usuario_id}')
+            if calificacion:
+                usuario = get_object_or_404(Usuario, id=usuario_id)
+                Calificacion.objects.update_or_create(
+                    ID_usuario=usuario,
+                    ID_evaluacion=evaluacion,
+                    defaults={'comentario': comentario, 'calificacion': calificacion}
+                )
+        return redirect('calificaciones_asignatura', asignatura_id=asignatura.id)
+
+    estudiantes = RegistroAsignatura.objects.filter(asignatura_id=asignatura, rol='ALUMNO').select_related('usuario')
+    calificaciones = Calificacion.objects.filter(ID_evaluacion=evaluacion)
+    estudiantes_calificaciones = []
+
+    for estudiante in estudiantes:
+        calificacion = calificaciones.filter(ID_usuario=estudiante.usuario).first()
+        estudiantes_calificaciones.append({
+            'estudiante': estudiante.usuario,
+            'calificacion': calificacion
+        })
+
+    return render(request, 'aula_virtual/agregar_calificacion.html', {
+        'evaluacion': evaluacion,
+        'asignatura': asignatura,
+        'estudiantes_calificaciones':estudiantes_calificaciones
+    })
+
+
+@login_required
+def agregar_evaluacion(request, asignatura_id):
+    asignatura = get_object_or_404(Asignatura, id=asignatura_id)
+    es_profesor = RegistroAsignatura.objects.filter(asignatura=asignatura, usuario=request.user, rol='PROFESOR').exists()
+
+    if not es_profesor:
+        return render(request,'aula_virtual/usuario-sin-permiso.html')
+
+    if request.method == 'POST':
+        titulo = request.POST.get('titulo')
+        descripcion = request.POST.get('descripcion')
+        fecha_inicio = request.POST.get('fecha_inicio')
+        fecha_termino = request.POST.get('fecha_termino')
+        tipo = request.POST.get('tipo')
+
+        fecha_inicio = datetime.strptime(fecha_inicio, '%Y-%m-%d')
+        fecha_termino = datetime.strptime(fecha_termino, '%Y-%m-%d')
+        evaluacion = Evaluacion(
+            asignatura=asignatura,
+            titulo=titulo,
+            descripcion=descripcion,
+            fecha_inicio=fecha_inicio,
+            fecha_termino=fecha_termino,
+            tipo=tipo
+
+        )
+        evaluacion.save()
+        return redirect('agregar_evaluacion', asignatura_id=asignatura.id)
+
+    return render(request, 'aula_virtual/agregar_evaluacion.html', {'asignatura': asignatura})
